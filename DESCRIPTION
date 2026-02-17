@@ -1,9 +1,9 @@
 Package: lazymatrix
-Title: What the Package Does (One Line, Title Case)
+Title: Perform Complex Matrix Operations Symbolically on Sparse Matrices
 Version: 0.0.0.9000
 Authors@R: 
     person("Viktor", "Segersall", , "viktor.segersall@proton.me", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: A system which allows computation of high order sparse matrices symbolically.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
