@@ -2,7 +2,7 @@
 setClass("LazyMatrix",
   slots = c(
     data = "ANY",
-    transformations = "list"
+    transformations = "list" # allows for chaining transformations and operations
   ),
   prototype = list(
     # Empty matrix of zeroes until filled with real data
@@ -14,8 +14,15 @@ setClass("LazyMatrix",
 
 # Some helper function allowing for
 # users to only call LazyMatrix(X) without "operations"
-LazyMatrix <- function(data, transformations=list()){
+LazyMatrix <- function(data, transform = NULL){
   # code for constructing helper
+  transformations <- if(is.null(transform)){
+    list()
+  } else if (is.character(transform)){
+    lapply(transform, function(t) list(type = t)) # if user only gives one or a vector of transforms(expected user behavior)
+  } else {
+    transform
+  }
   new("LazyMatrix", data=data, transformations=transformations)
 }
 
@@ -33,12 +40,24 @@ setGeneric("addition", function(x, y) standardGeneric("addition"))
 
 ### two lazy matrices
 setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
-  newmat <- matrix(NA, ncol=ncol(x@data),
-                   nrow=nrow(x@data))
-  for (i in 1:nrow(x@data)){
-    for (j in 1:ncol(x@data)){
-      newmat[i, j] <- x@data[i, j] + y@data[i, j]
-    }
-  }
-  newLazy <- LazyMatrix(newmat)
-  })
+  new("LazyMatrix",
+      data = x@data,
+      transformations = c(
+        x@transformations,
+        list(list(
+          operation = "add",
+          addent = y
+        ))
+      ))
+})
+
+#setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
+#  newmat <- matrix(NA, ncol=ncol(x@data),
+#                   nrow=nrow(x@data))
+#  for (i in 1:nrow(x@data)){
+#    for (j in 1:ncol(x@data)){
+#      newmat[i, j] <- x@data[i, j] + y@data[i, j]
+#    }
+#  }
+#  newLazy <- LazyMatrix(newmat)
+#  })
