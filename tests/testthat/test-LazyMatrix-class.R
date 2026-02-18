@@ -13,16 +13,14 @@ test_that("Lazy matrix stores addition properly without transforms. ", {
   expect_s4_class(c, "LazyMatrix")
   expect_equal(c@transformations[[1]]$operation, "add")
   expect_identical(c@transformations[[1]]$addent, b)
-  # add a line for checking that "addition" is stored
 
   # 4. Computation
   ## here we test the actual computation which is being done in a
   ## another method
-  #expect_equal(c@data, mat.a + mat.b)
-  #expect_equal(lazy.subtraction(a, b), mat.a - mat.b)
+  #expect_equal(c[i, j], mat.a[i, j] + mat.b[i, j])
 })
 
-test_that("Lazy matrix stores addition properly with transforms. ", {
+test_that("Lazy matrix stores addition properly with single transforms. ", {
   # 1. Create 2 regular matrices
   mat.a <- matrix(1:4, 2, 2)
   mat.b <- matrix(5:8, 2, 2)
@@ -37,13 +35,11 @@ test_that("Lazy matrix stores addition properly with transforms. ", {
   expect_s4_class(c, "LazyMatrix")
   expect_equal(c@transformations[[2]]$operation, "add")
   expect_identical(c@transformations[[2]]$addent, b)
-  # add a line for checking that "addition" is stored
 
   # 4. Computation
   ## here we test the actual computation which is being done in a
   ## another method
-  #expect_equal(c@data, mat.a + mat.b)
-  #expect_equal(lazy.subtraction(a, b), mat.a - mat.b)
+  #expect_equal(c[i, j], mat.a[i, j] + mat.b[i, j]
 })
 
 test_that("Lazy matrix stores addition properly with multiple transforms. ", {
@@ -62,11 +58,9 @@ test_that("Lazy matrix stores addition properly with multiple transforms. ", {
   expect_s4_class(c, "LazyMatrix")
   expect_equal(c@transformations[[3]]$operation, "add")
   expect_identical(c@transformations[[3]]$addent, b)
-  # add a line for checking that "addition" is stored
 
   # 4. Computation
   ## here we test the actual computation which is being done in a
   ## another method
-  #expect_equal(c@data, mat.a + mat.b)
-  #expect_equal(lazy.subtraction(a, b), mat.a - mat.b)
+  #expect_equal(c[i, j], mat.a[i, j] + mat.b[i, j]
 })

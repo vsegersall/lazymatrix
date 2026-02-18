@@ -13,11 +13,11 @@ setClass("LazyMatrix",
 )
 
 # Some helper function allowing for
-# users to only call LazyMatrix(X) without "operations"
+# users to only call LazyMatrix(X) in  more user-friendly manner
 LazyMatrix <- function(data, transform = NULL){
   # code for constructing helper
   transformations <- if(is.null(transform)){
-    list()
+    list() # if user only provides matrix
   } else if (is.character(transform)){
     lapply(transform, function(t) list(type = t)) # if user only gives one or a vector of transforms(expected user behavior)
   } else {
