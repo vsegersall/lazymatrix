@@ -2,46 +2,34 @@
 setClass("LazyMatrix",
   slots = c(
     data = "ANY",
-    operations = "list"
+    transformations = "list"
   ),
   prototype = list(
     # Empty matrix of zeroes until filled with real data
-    ## empty list of operations
+    ## empty list of transformations
     data = matrix(0),
-    operations = list()
+    transformations = list()
   )
 )
 
 # Some helper function allowing for
 # users to only call LazyMatrix(X) without "operations"
-LazyMatrix <- function(data, operations=list()){
+LazyMatrix <- function(data, transformations=list()){
   # code for constructing helper
-  new("LazyMatrix", data=data, operations=operations)
+  new("LazyMatrix", data=data, transformations=transformations)
 }
 
 # Validity checks on the arguments
 setValidity("LazyMatrix", function(object){
   # 1. check that data is a matrix of some sort - should be able to handle:
   ## multiple matrix objects such as data.frame, Matrix etc
-  # 2. Check that operations is a list
+  # 2. Check that transformations is a list
 })
 
 # Methods to the class
 ## Addition
 ### Generic
 setGeneric("addition", function(x, y) standardGeneric("addition"))
-
-### two regular R matrices
-setMethod("addition", c("matrix", "matrix"), function(x, y){
-  newmat <- matrix(NA, ncol=ncol(x),
-                   nrow=nrow(x))
-  for (i in 1:nrow(x)){
-    for (j in 1:ncol(x)){
-      newmat[i,j] = x[i,j] + y[i, j]
-    }
-  }
-  newLazy <- LazyMatrix(newmat)
-})
 
 ### two lazy matrices
 setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
