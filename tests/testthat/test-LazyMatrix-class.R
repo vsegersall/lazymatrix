@@ -73,3 +73,12 @@ test_that("Multiplication between lazy X and non-lazy b works! ",{
   observed.outcome <- X %*% b
   expect_equal(observed.outcome, expected.outcome)
 })
+
+test_that("Multiplication between lazy X normalized and non-lazy b works! ",{
+  mat.a <- matrix(1:4, 2, 2)
+  b <- c(1, 2)
+  X <- LazyMatrix(mat.a, "scale")
+  expected.outcome <- scale(mat.a) %*% b
+  observed.outcome <- X %*% b
+  expect_equal(observed.outcome, expected.outcome)
+})

@@ -52,9 +52,19 @@ setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
 })
 
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
-  A <- as.matrix(x@data)
+  newmat <- as.matrix(x@data)
+  if (length(x@transformations) > 0){
+    for (transform in x@transformations){
+      if (transform$type == "scale"){
+        A <- scale(newmat)
+      }
+    }
+  } else{
+    A <- newmat
+  }
   A %*% y
 })
+
 ## matrismultiplikation med en icke-gles vektor b
 
 #setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
