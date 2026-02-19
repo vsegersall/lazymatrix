@@ -2,78 +2,58 @@
 setClass("LazyMatrix",
   slots = c(
     data = "ANY",
-    transformations = "list" # allows for chaining transformations and operations
+    scales = "ANY",
+    locations = "ANY"
   ),
   prototype = list(
     # Empty matrix of zeroes until filled with real data
-    ## empty list of transformations
     data = matrix(0),
-    transformations = list()
+    scales = c(0),
+    locations = c(0)
   )
 )
 
-# Some helper function allowing for
-# users to only call LazyMatrix(X) in  more user-friendly manner
-LazyMatrix <- function(data, transform = NULL){
+# Helper function should:
+## define location- and scale parameters
+## Compute and store them
+LazyMatrix <- function(data, scale = NULL,
+                       location = NULL){
   # code for constructing helper
-  transformations <- if(is.null(transform)){
-    list() # if user only provides matrix
-  } else if (is.character(transform)){
-    lapply(transform, function(t) list(type = t)) # if user only gives one or a vector of transforms(expected user behavior)
-  } else {
-    transform
+  scales <- if(is.null(scale)){
+    c()
+  } else if (scale == "sd"){
+    scales <- apply(data, 2, sd)
+  }else {
+    c()
   }
-  new("LazyMatrix", data=data, transformations=transformations)
+  locations <- if(is.null(location)){
+    c()
+  } else if (location == "mean"){
+    locations <- Matrix::colMeans(data)
+  }else {
+    c()
+  }
+  new("LazyMatrix", data=data, scales=scales,
+      locations=locations)
 }
 
 # Validity checks on the arguments
 setValidity("LazyMatrix", function(object){
   # 1. check that data is a matrix of some sort - should be able to handle:
   ## multiple matrix objects such as data.frame, Matrix etc
-  # 2. Check that transformations is a list
+  # 2. Check for location and scale
 })
 
-# Methods to the class
-## Addition
-### Generic
-setGeneric("addition", function(x, y) standardGeneric("addition"))
-
-### two lazy matrices
-setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
-  new("LazyMatrix",
-      data = x@data,
-      transformations = c(
-        x@transformations,
-        list(list(
-          operation = "add",
-          addent = y
-        ))
-      ))
-})
-
+# Multiplication between lazy object and non-lazy vector
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
-  newmat <- as.matrix(x@data)
-  if (length(x@transformations) > 0){
-    for (transform in x@transformations){
-      if (transform$type == "scale"){
-        A <- scale(newmat)
-      }
-    }
-  } else{
-    A <- newmat
-  }
-  A %*% y
+  s <- 1/x@scales
+  c <- x@locations
+  x@data %*% s * y - c * s * y
 })
 
-## matrismultiplikation med en icke-gles vektor b
-
-#setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
-#  newmat <- matrix(NA, ncol=ncol(x@data),
-#                   nrow=nrow(x@data))
-#  for (i in 1:nrow(x@data)){
-#    for (j in 1:ncol(x@data)){
-#      newmat[i, j] <- x@data[i, j] + y@data[i, j]
-#    }
-#  }
-#  newLazy <- LazyMatrix(newmat)
-#  })
+# Transpose
+setMethod("t", "LazyMatrix", function(x){
+  s <- 1/x@scales
+  c <- x@locations
+  t(x@data) %*% s - c * s
+})
