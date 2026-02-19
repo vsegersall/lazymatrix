@@ -51,6 +51,12 @@ setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
       ))
 })
 
+setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
+  A <- as.matrix(x@data)
+  A %*% y
+})
+## matrismultiplikation med en icke-gles vektor b
+
 #setMethod("addition", c("LazyMatrix", "LazyMatrix"), function(x, y){
 #  newmat <- matrix(NA, ncol=ncol(x@data),
 #                   nrow=nrow(x@data))

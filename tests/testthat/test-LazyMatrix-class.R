@@ -64,3 +64,12 @@ test_that("Lazy matrix stores addition properly with multiple transforms. ", {
   ## another method
   #expect_equal(c[i, j], mat.a[i, j] + mat.b[i, j]
 })
+
+test_that("Multiplication between lazy X and non-lazy b works! ",{
+  mat.a <- matrix(1:4, 2, 2)
+  b <- c(1, 2)
+  X <- LazyMatrix(mat.a)
+  expected.outcome <- mat.a %*% b
+  observed.outcome <- X %*% b
+  expect_equal(observed.outcome, expected.outcome)
+})
