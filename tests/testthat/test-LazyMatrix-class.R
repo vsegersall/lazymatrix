@@ -41,12 +41,18 @@ test_that("Lazy multiplication computation works. ", {
 
 test_that("Lazy transpose computation works. ", {
   # Expected outcome
-  mat.a <- matrix(1:4, 2, 2)
-  expected.location <- Matrix::colMeans(mat.a)
+  mat.a <- matrix(c(1, 2, 3,
+                    1, 2, 3), nrow=2, ncol=3)
+  expected.means <- Matrix::colMeans(mat.a)
+  expected.locations <- matrix(0, nrow=nrow(mat.a),
+         ncol=ncol(mat.a))
+  for (i in 1:nrow(expected.locations)){
+    expected.locations[i,] <- expected.means
+  }
   expected.sd <- apply(mat.a, 2, sd)
   expected.scale <- 1/expected.sd
   mat.a.t <- t(mat.a)
-  expected.transpose <- mat.a.t %*% expected.scale-expected.location*expected.scale
+  expected.transpose <- expected.scale %*% mat.a.t  - expected.scale %*% t(expected.locations)
 
   # Observed outcome
   a <- LazyMatrix(mat.a, "sd", "mean")

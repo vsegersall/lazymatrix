@@ -6,7 +6,6 @@ setClass("LazyMatrix",
     locations = "ANY"
   ),
   prototype = list(
-    # Empty matrix of zeroes until filled with real data
     data = matrix(0),
     scales = c(0),
     locations = c(0)
@@ -39,8 +38,8 @@ LazyMatrix <- function(data, scale = NULL,
 
 # Validity checks on the arguments
 setValidity("LazyMatrix", function(object){
-  # 1. check that data is a matrix of some sort - should be able to handle:
-  ## multiple matrix objects such as data.frame, Matrix etc
+  # 1. check that data is a matrix: this is crucial for how the methods are
+  ## implemented
   # 2. Check for location and scale
 })
 
@@ -54,6 +53,13 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
 # Transpose
 setMethod("t", "LazyMatrix", function(x){
   s <- 1/x@scales
-  c <- x@locations
-  t(x@data) %*% s - c * s
+  c <- matrix(0, nrow=nrow(x@data),
+              ncol=ncol(x@data))
+  for (i in 1:nrow(c)){
+    c[i,] <- x@locations
+  }
+  s %*% t(x@data) - s %*% t(c)
 })
+
+# crossprod
+
