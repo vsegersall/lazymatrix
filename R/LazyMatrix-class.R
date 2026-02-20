@@ -2,13 +2,17 @@
 setClass("LazyMatrix",
   slots = c(
     data = "ANY",
-    scales = "ANY",
-    locations = "ANY"
+    col_scales = "numeric",
+    row_scales = "numeric",
+    col_locations = "numeric",
+    row_locations = "numeric"
   ),
   prototype = list(
     data = matrix(0),
-    scales = c(0),
-    locations = c(0)
+    col_scales = numeric(0),
+    row_scales = numeric(0),
+    col_locations = numeric(0),
+    row_locations = numeric(0)
   )
 )
 
@@ -18,22 +22,37 @@ setClass("LazyMatrix",
 LazyMatrix <- function(data, scale = NULL,
                        location = NULL){
   # code for constructing helper
-  scales <- if(is.null(scale)){
-    c()
+  col_scales <- if(is.null(scale)){
+    numeric(0)
   } else if (scale == "sd"){
-    scales <- apply(data, 2, sd)
+    base::apply(data, 2, sd)
   }else {
-    c()
+    numeric(0)
   }
-  locations <- if(is.null(location)){
-    c()
+  row_scales <- if(is.null(scale)){
+    numeric(0)
+  } else if (scale == "sd"){
+    base::apply(data, 1, sd)
+  }else {
+    numeric(0)
+  }
+  col_locations <- if(is.null(location)){
+    numeric(0)
   } else if (location == "mean"){
-    locations <- Matrix::colMeans(data)
+    Matrix::colMeans(data)
   }else {
-    c()
+    numeric(0)
   }
-  new("LazyMatrix", data=data, scales=scales,
-      locations=locations)
+  row_locations <- if(is.null(location)){
+    numeric(0)
+  } else if (location == "mean"){
+    Matrix::rowMeans(data)
+  }else {
+    numeric(0)
+  }
+  new("LazyMatrix", data = data,
+      col_scales = col_scales, row_scales = row_scales,
+      col_locations = col_locations, row_locations = row_locations)
 }
 
 # Validity checks on the arguments
@@ -45,21 +64,37 @@ setValidity("LazyMatrix", function(object){
 
 # Multiplication between lazy object and non-lazy vector
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
-  s <- 1/x@scales
-  c <- x@locations
+  s <- 1/x@col_scales
+  c <- x@col_locations
   x@data %*% s * y - c * s * y
 })
 
 # Transpose
 setMethod("t", "LazyMatrix", function(x){
-  s <- 1/x@scales
+  S <- Matrix::Diagonal(n = length(x@col_scales),
+                        x = 1/x@col_scales)
+  # matrix implementation of C is not great, should be optimized later
   c <- matrix(0, nrow=nrow(x@data),
               ncol=ncol(x@data))
   for (i in 1:nrow(c)){
-    c[i,] <- x@locations
+    c[i,] <- x@col_locations
   }
-  s %*% t(x@data) - s %*% t(c)
+  t(S) %*% t(x@data) - t(S) %*% t(c)
+})
+
+setMethod("t", "LazyMatrix", function(x){
+  x.transpose <- t(x@data)
+  new("LazyMatrix", data = x.transpose,
+      col_scales = row_scales, row_scales = col_scales,
+      col_locations = row_locations, row_locations = col_locations)
 })
 
 # crossprod
-
+setMethod("crossprod", c("LazyMatrix", "Any"), function(x, y = NULL){
+  if (is.null(y) || is.missing(y)){
+    # gram matrix
+  }
+  else{
+    # t(X) %*% y
+  }
+})

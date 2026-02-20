@@ -1,25 +1,43 @@
-test_that("Class definition works fine. ", {
+test_that("Class definition works fine.", {
   mat.a <- matrix(1:4, 2, 2)
   a <- LazyMatrix(mat.a)
-  b <- LazyMatrix(mat.a, "sd")
-  c <- LazyMatrix(mat.a, "sd",
-                  "mean")
+  b <- LazyMatrix(mat.a, scale = "sd")
+  c <- LazyMatrix(mat.a, scale = "sd", location = "mean")
+
   # 1. Check that each type is a LazyMatrix object
   expect_s4_class(a, "LazyMatrix")
   expect_s4_class(b, "LazyMatrix")
   expect_s4_class(c, "LazyMatrix")
 
-  # 2. Check that we stored location properly
-  expected.location <- Matrix::colMeans(mat.a)
-  observed.location <- c@locations
-  expect_equal(expected.location, observed.location)
+  # 2. Check that we stored column locations properly
+  expected.col_location <- Matrix::colMeans(mat.a)
+  observed.col_location <- c@col_locations
+  expect_equal(expected.col_location, observed.col_location)
 
-  # 3. Check that we stored scale properly
-  expected.scale <- apply(mat.a, 2, sd)
-  observed.scale.1arg <- b@scales
-  expect_equal(expected.scale, observed.scale.1arg)
-  observed.scale.2args <- c@scales
-  expect_equal(expected.scale, observed.scale.2args)
+  # 3. Check that we stored row locations properly
+  expected.row_location <- Matrix::rowMeans(mat.a)
+  observed.row_location <- c@row_locations
+  expect_equal(expected.row_location, observed.row_location)
+
+  # 4. Check that we stored column scales properly
+  expected.col_scale <- base::apply(mat.a, 2, sd)
+  observed.col_scale.1arg <- b@col_scales
+  expect_equal(expected.col_scale, observed.col_scale.1arg)
+  observed.col_scale.2args <- c@col_scales
+  expect_equal(expected.col_scale, observed.col_scale.2args)
+
+  # 5. Check that we stored row scales properly
+  expected.row_scale <- base::apply(mat.a, 1, sd)
+  observed.row_scale.1arg <- b@row_scales
+  expect_equal(expected.row_scale, observed.row_scale.1arg)
+  observed.row_scale.2args <- c@row_scales
+  expect_equal(expected.row_scale, observed.row_scale.2args)
+
+  # 6. Check that empty LazyMatrix has numeric(0) for all params
+  expect_equal(length(a@col_scales), 0)
+  expect_equal(length(a@row_scales), 0)
+  expect_equal(length(a@col_locations), 0)
+  expect_equal(length(a@row_locations), 0)
 })
 
 test_that("Lazy multiplication computation works. ", {
@@ -27,7 +45,7 @@ test_that("Lazy multiplication computation works. ", {
   mat.a <- matrix(1:4, 2, 2)
   b <- c(1, 2)
   expected.location <- Matrix::colMeans(mat.a)
-  expected.sd <- apply(mat.a, 2, sd)
+  expected.sd <- base::apply(mat.a, 2, sd)
   expected.scale <- 1/expected.sd
   expected.product <- mat.a %*% expected.scale * b - expected.location * expected.scale * b
 
@@ -49,10 +67,12 @@ test_that("Lazy transpose computation works. ", {
   for (i in 1:nrow(expected.locations)){
     expected.locations[i,] <- expected.means
   }
-  expected.sd <- apply(mat.a, 2, sd)
+  expected.sd <- base::apply(mat.a, 2, sd)
   expected.scale <- 1/expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
+                                x = expected.scale)
   mat.a.t <- t(mat.a)
-  expected.transpose <- expected.scale %*% mat.a.t  - expected.scale %*% t(expected.locations)
+  expected.transpose <- t(scale.mat) %*% mat.a.t  - t(scale.mat) %*% t(expected.locations)
 
   # Observed outcome
   a <- LazyMatrix(mat.a, "sd", "mean")
