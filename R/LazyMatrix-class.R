@@ -71,22 +71,16 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
 
 # Transpose
 setMethod("t", "LazyMatrix", function(x){
-  S <- Matrix::Diagonal(n = length(x@col_scales),
-                        x = 1/x@col_scales)
-  # matrix implementation of C is not great, should be optimized later
-  c <- matrix(0, nrow=nrow(x@data),
-              ncol=ncol(x@data))
-  for (i in 1:nrow(c)){
-    c[i,] <- x@col_locations
+  x.transpose <- matrix(0, ncol = nrow(x@data),
+                        nrow = ncol(x@data))
+  for (i in 1:nrow(x.transpose)){
+    for (j in 1:ncol(x.transpose)){
+      x.transpose[i, j] <- x@data[j ,i]
+    }
   }
-  t(S) %*% t(x@data) - t(S) %*% t(c)
-})
-
-setMethod("t", "LazyMatrix", function(x){
-  x.transpose <- t(x@data)
   new("LazyMatrix", data = x.transpose,
-      col_scales = row_scales, row_scales = col_scales,
-      col_locations = row_locations, row_locations = col_locations)
+      col_scales = x@row_scales, row_scales = x@col_scales,
+      col_locations = x@row_locations, row_locations = x@col_locations)
 })
 
 # crossprod

@@ -57,27 +57,14 @@ test_that("Lazy multiplication computation works. ", {
   expect_equal(expected.product, observed.product)
 })
 
-test_that("Lazy transpose computation works. ", {
-  # Expected outcome
+test_that("Lazy tranpose works. ", {
   mat.a <- matrix(c(1, 2, 3,
                     1, 2, 3), nrow=2, ncol=3)
-  expected.means <- Matrix::colMeans(mat.a)
-  expected.locations <- matrix(0, nrow=nrow(mat.a),
-         ncol=ncol(mat.a))
-  for (i in 1:nrow(expected.locations)){
-    expected.locations[i,] <- expected.means
-  }
-  expected.sd <- base::apply(mat.a, 2, sd)
-  expected.scale <- 1/expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
-                                x = expected.scale)
-  mat.a.t <- t(mat.a)
-  expected.transpose <- t(scale.mat) %*% mat.a.t  - t(scale.mat) %*% t(expected.locations)
-
-  # Observed outcome
-  a <- LazyMatrix(mat.a, "sd", "mean")
-  observed.transpose <- t(a)
-
-  # Test
-  expect_equal(expected.transpose, observed.transpose)
+  mat.at <- base::t(mat.a)
+  lazy.a <- LazyMatrix(mat.a, "sd", "mean")
+  lazy.at <- t(lazy.a)
+  expect_s4_class(lazy.at, "LazyMatrix")
+  expect_equal(mat.at, lazy.at@data)
 })
+
+
