@@ -58,8 +58,8 @@ test_that("Lazy multiplication computation works. ", {
 })
 
 test_that("Lazy tranpose works. ", {
-  mat.a <- matrix(c(1, 2, 3,
-                    1, 2, 3), nrow=2, ncol=3)
+  mat.a <- base::matrix(c(1, 2, 3,
+                          1, 2, 3), nrow=2, ncol=3)
   mat.at <- base::t(mat.a)
   lazy.a <- LazyMatrix(mat.a, "sd", "mean")
   lazy.at <- t(lazy.a)
@@ -67,4 +67,32 @@ test_that("Lazy tranpose works. ", {
   expect_equal(mat.at, lazy.at@data)
 })
 
+test_that("Crossprod works. ", {
+  mat_a <- base::matrix(c(1, 2, 3,
+                          1, 2, 3), nrow=2, ncol=3)
+  mat_at <- base::t(mat.a)
+  lazy_a <- LazyMatrix(mat.a, "sd", "mean")
+
+  # crossprod() with vector
+  b <- c(1, 2)
+  expected.means <- Matrix::colMeans(mat.a)
+  expected.locations <- matrix(0, nrow=nrow(mat.a),
+                               ncol=ncol(mat.a))
+  for (i in 1:nrow(expected.locations)){
+    expected.locations[i,] <- expected.means
+  }
+  expected.sd <- base::apply(mat.a, 2, sd)
+  expected.scale <- 1/expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
+                                x = expected.scale)
+
+  exp.outcome <- t(scale.mat) %*% (mat.at - t(expected.locations)) %*% b
+  obs.outcome <- crossprod(lazy_a, b)
+  expect_equal(exp.outcome, obs.outcome)
+
+  # gram matrix
+  #exp.gram <- t(scale.mat) %*% (mat.at - t(expected.locations)) %*% (mat.a - expected.locations) %*% scale.mat
+  #obs.gram <- lazy.at %*% lazy.a
+  #expect_equal(exp.gram, obs.gram)
+})
 
