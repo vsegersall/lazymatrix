@@ -97,3 +97,61 @@ test_that("Crossprod works. ", {
   #expect_equal(exp.gram, obs.gram)
 })
 
+test_that("Gradient descent algorithm works. ", {
+  set.seed(2121)
+
+  # 1. Set up design matrix, non-lazy
+  n <- 50
+  p <- 5
+  mat_a <- base::matrix(stats::rnorm(n*p), nrow = n,
+                  ncol = p)
+  mat_at <- base::t(mat_a)
+  expected.means <- Matrix::colMeans(mat_a)
+  expected.locations <- matrix(0, nrow=nrow(mat_a),
+                               ncol=ncol(mat_a))
+  for (i in 1:nrow(expected.locations)){
+    expected.locations[i,] <- expected.means
+  }
+  expected.sd <- base::apply(mat_a, 2, sd)
+  expected.scale <- 1/expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
+                                x = expected.scale)
+  scaled_a <- (mat_a - expected.locations) %*% scale.mat
+
+  # 2. Set up lazy design matrix
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+
+  # 3. Parameter initialisation
+  set.seed(4567)
+  w_init <- stats::rnorm(p)
+  b_init <- stats::rnorm(1)
+  y_true <- stats::rnorm(nrow(scaled_a))
+  learning_rate <- 0.01
+  n_epochs <- 10
+
+  # 3. Gradient descent non-lazy
+  w_stand <- w_init
+  b_stand <- b_init
+  set.seed(999)
+  for (epoch in 1:n_epochs){
+    indices <- sample(1:nrow(scaled_a))
+    for (i in indices){
+      x_i <- scaled_a[i, ]
+      y_i <- sum(x_i * w_stand) + b_stand
+      error_i <- y_i - y_true[i]
+      w_stand <- w_stand - learning_rate * x_i * error_i
+      b_stand <- b_stand - learning_rate * error_i
+    }
+  }
+  expected_preds <- scaled_a %*% w_stand + b_stand
+
+  # 4. Gradient descent, lazy
+  w_lazy <- w_init
+  b_lazy <- b_init
+  set.seed(999)
+  lazy_results <- gradient_descent(lazy_a)
+
+  # 5. Test
+  observed_preds <- lazy_a %*% lazy_results$w + lazy_results$b
+  expect_equal(as.vector(expected_preds), observed_preds)
+})
