@@ -70,23 +70,24 @@ test_that("Lazy tranpose works. ", {
 test_that("Crossprod works. ", {
   mat_a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
-  mat_at <- base::t(mat.a)
-  lazy_a <- LazyMatrix(mat.a, "sd", "mean")
+  mat_at <- base::t(mat_a)
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 
   # crossprod() with vector
-  b <- c(1, 2)
-  expected.means <- Matrix::colMeans(mat.a)
-  expected.locations <- matrix(0, nrow=nrow(mat.a),
-                               ncol=ncol(mat.a))
+  b <- c(1, -1)
+  expected.means <- Matrix::colMeans(mat_a)
+  expected.locations <- matrix(0, nrow=nrow(mat_a),
+                               ncol=ncol(mat_a))
   for (i in 1:nrow(expected.locations)){
     expected.locations[i,] <- expected.means
   }
-  expected.sd <- base::apply(mat.a, 2, sd)
+  expected.sd <- base::apply(mat_a, 2, sd)
   expected.scale <- 1/expected.sd
   scale.mat <- Matrix::Diagonal(n = length(expected.scale),
                                 x = expected.scale)
 
-  exp.outcome <- t(scale.mat) %*% (mat.at - t(expected.locations)) %*% b
+  exp.outcome <- t(scale.mat) %*% (mat_at - t(expected.locations)) %*% b
+  exp.outcome <- as.vector(exp.outcome)
   obs.outcome <- crossprod(lazy_a, b)
   expect_equal(exp.outcome, obs.outcome)
 
