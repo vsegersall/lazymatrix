@@ -85,11 +85,13 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
   else{
     # t(X) %*% y
     s <- 1/x@col_scales
-    S_inv <- Matrix::Diagonal(length(x@col_scales), s)
+    #S_inv <- Matrix::Diagonal(length(x@col_scales), s)
     c <- x@col_locations
-    x_tb <- numeric(ncol(x@data))
+    x_tb <- base::numeric(ncol(x@data))
+    sum_y <- base::sum(y)
     for (j in 1:ncol(x@data)){
-      x_tb[j] <- s[j]*sum((x@data[,j]-c[j]) * y)
+      #x_tb[j] <- s[j]*base::sum((x@data[,j]-c[j]) * y)
+      x_tb[j] <- s[j]*base::sum(x@data[,j] * y) - s[j]*c[j]*sum_y
     }
     x_tb
   }
