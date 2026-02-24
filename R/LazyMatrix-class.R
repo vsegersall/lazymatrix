@@ -66,7 +66,7 @@ setValidity("LazyMatrix", function(object){
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
   s <- 1/x@col_scales
   c <- x@col_locations
-  x@data %*% s * y - c * s * y
+  x@data %*% (s * y) - sum(c * s * y)
 })
 
 # Transpose ####
@@ -117,7 +117,7 @@ setMethod("gradient_descent", "LazyMatrix", function(x, y, w_init, b_init,
       y_pred <- sum(x_i * s * w) - sum(c * s * w) + b
       #y_i <- sum(x_i * w_stand) + b_stand
       error_i <- y_pred - y[i]
-      w <- w - learning_rate * x_i* s * error_i - learning_rate * c * s * error_i
+      w <- w - learning_rate * x_i* s * error_i + learning_rate * c * s * error_i
       b <- b - learning_rate * error_i
     }
   }

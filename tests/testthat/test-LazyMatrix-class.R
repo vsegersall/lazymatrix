@@ -1,3 +1,4 @@
+# Class definition ####
 test_that("Class definition works fine.", {
   mat.a <- matrix(1:4, 2, 2)
   a <- LazyMatrix(mat.a)
@@ -40,14 +41,16 @@ test_that("Class definition works fine.", {
   expect_equal(length(a@row_locations), 0)
 })
 
+# Matrix multiplication ####
 test_that("Lazy multiplication computation works. ", {
   # Expected outcome
-  mat.a <- matrix(1:4, 2, 2)
-  b <- c(1, 2)
+  mat.a <- base::matrix(c(1, 2, 3,
+                          1, 2, 3), nrow=2, ncol=3)
+  b <- c(1, 2, 3)
   expected.location <- Matrix::colMeans(mat.a)
   expected.sd <- base::apply(mat.a, 2, sd)
   expected.scale <- 1/expected.sd
-  expected.product <- mat.a %*% expected.scale * b - expected.location * expected.scale * b
+  expected.product <- mat.a %*% (expected.scale * b) - sum(expected.location * expected.scale * b)
 
   # Observed outcome
   a <- LazyMatrix(mat.a, "sd", "mean")
@@ -57,6 +60,7 @@ test_that("Lazy multiplication computation works. ", {
   expect_equal(expected.product, observed.product)
 })
 
+# Transpose ####
 test_that("Lazy tranpose works. ", {
   mat.a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
@@ -67,6 +71,7 @@ test_that("Lazy tranpose works. ", {
   expect_equal(mat.at, lazy.at@data)
 })
 
+# Crossproduct ####
 test_that("Crossprod works. ", {
   mat_a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
@@ -97,6 +102,7 @@ test_that("Crossprod works. ", {
   #expect_equal(exp.gram, obs.gram)
 })
 
+# Gradient descent ####
 test_that("Gradient descent algorithm works. ", {
   set.seed(2121)
 
@@ -155,6 +161,8 @@ test_that("Gradient descent algorithm works. ", {
                                    n_epochs = n_epochs)
 
   # 5. Test
+  expect_equal(w_stand, lazy_results$w)
+  expect_equal(b_stand, lazy_results$b)
   observed_preds <- lazy_a %*% lazy_results$w + lazy_results$b
   expect_equal(as.vector(expected_preds), as.vector(observed_preds))
 })
