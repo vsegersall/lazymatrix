@@ -149,9 +149,12 @@ test_that("Gradient descent algorithm works. ", {
   w_lazy <- w_init
   b_lazy <- b_init
   set.seed(999)
-  lazy_results <- gradient_descent(lazy_a)
+  lazy_results <- gradient_descent(lazy_a, y=y_true,
+                                   w_init = w_lazy, b_init = b_lazy,
+                                   learning_rate = learning_rate,
+                                   n_epochs = n_epochs)
 
   # 5. Test
   observed_preds <- lazy_a %*% lazy_results$w + lazy_results$b
-  expect_equal(as.vector(expected_preds), observed_preds)
+  expect_equal(as.vector(expected_preds), as.vector(observed_preds))
 })

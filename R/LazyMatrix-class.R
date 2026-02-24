@@ -1,4 +1,4 @@
-# Class definition
+# Class definition ####
 setClass("LazyMatrix",
   slots = c(
     data = "ANY",
@@ -16,7 +16,7 @@ setClass("LazyMatrix",
   )
 )
 
-# Helper function should:
+# Helper ####
 ## define location- and scale parameters
 ## Compute and store them
 LazyMatrix <- function(data, scale = NULL,
@@ -69,7 +69,7 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
   x@data %*% s * y - c * s * y
 })
 
-# Transpose
+# Transpose ####
 setMethod("t", "LazyMatrix", function(x){
   x_transpose <- t(x@data)
   new("LazyMatrix", data = x_transpose,
@@ -77,7 +77,7 @@ setMethod("t", "LazyMatrix", function(x){
       col_locations = x@row_locations, row_locations = x@col_locations)
 })
 
-# crossprod
+# crossprod ####
 setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
   if (is.null(y)){
     # gram matrix
@@ -90,9 +90,36 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
     x_tb <- base::numeric(ncol(x@data))
     sum_y <- base::sum(y)
     for (j in 1:ncol(x@data)){
-      #x_tb[j] <- s[j]*base::sum((x@data[,j]-c[j]) * y)
       x_tb[j] <- s[j]*base::sum(x@data[,j] * y) - s[j]*c[j]*sum_y
     }
     x_tb
   }
+})
+
+# gradient_descent ####
+## generic function
+setGeneric("gradient_descent",
+           function(x, y, w_init, b_init, learning_rate, n_epochs) {
+             standardGeneric("gradient_descent")
+           })
+
+## implementation
+setMethod("gradient_descent", "LazyMatrix", function(x, y, w_init, b_init,
+                                                     learning_rate, n_epochs){
+  s <- 1/x@col_scales
+  c <- x@col_locations
+  w <- w_init
+  b <- b_init
+  for (epoch in 1:n_epochs){
+    indices <- sample(1:nrow(x@data))
+    for (i in indices){
+      x_i <- x@data[i, ]
+      y_pred <- sum(x_i * s * w) - sum(c * s * w) + b
+      #y_i <- sum(x_i * w_stand) + b_stand
+      error_i <- y_pred - y[i]
+      w <- w - learning_rate * x_i* s * error_i - learning_rate * c * s * error_i
+      b <- b - learning_rate * error_i
+    }
+  }
+  list(w = w, b = b)
 })
