@@ -13,7 +13,6 @@ gradient_descent_helper <- function(x, y, w_init, b_init,
   return(list(w=w, b=b))
 }
 
-
 # === Tests === ####
 
 # Class definition ####
@@ -110,18 +109,18 @@ test_that("Crossprod works. ", {
                                 x = expected.scale)
 
   exp.outcome <- t(scale.mat) %*% (mat_at - t(expected.locations)) %*% b
-  exp.outcome <- as.vector(exp.outcome)
+  #exp.outcome <- as.vector(exp.outcome)
   obs.outcome <- crossprod(lazy_a, b)
   expect_equal(exp.outcome, obs.outcome)
 
   # gram matrix
   #exp.gram <- t(scale.mat) %*% (mat.at - t(expected.locations)) %*% (mat.a - expected.locations) %*% scale.mat
-  #obs.gram <- lazy.at %*% lazy.a
+  #obs.gram <- crossprod(lazy.a)
   #expect_equal(exp.gram, obs.gram)
 })
 
 # Gradient descent ####
-test_that("Gradient descent algorithm works. ", {
+test_that("Crossprod works with gradient descent algorithm. ", {
   set.seed(2121)
 
   # 1. Set up design matrix, non-lazy
@@ -166,7 +165,7 @@ test_that("Gradient descent algorithm works. ", {
   preds_lazy <- lazy_a %*% pars_lazy$w + pars_lazy$b
 
   # 5. Test
-  expect_equal(as.vector(pars_nonlazy$w), pars_lazy$w)
+  expect_equal(pars_nonlazy$w, pars_lazy$w)
   expect_equal(pars_nonlazy$b, pars_lazy$b)
-  expect_equal(as.vector(preds_nonlazy), as.vector(preds_lazy))
+  expect_equal(preds_nonlazy, preds_lazy)
 })
