@@ -62,7 +62,19 @@ setValidity("LazyMatrix", function(object){
   # 2. Check for location and scale
 })
 
-# Multiplication between lazy object and non-lazy vector
+# nrow ####
+setGeneric("nrow")
+setMethod("nrow", "LazyMatrix", function(x){
+  base::nrow(x@data)
+})
+
+# ncol ####
+setGeneric("ncol")
+setMethod("ncol", "LazyMatrix", function(x){
+  base::ncol(x@data)
+})
+
+# Matrix Multiplication ####
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
   s <- 1/x@col_scales
   c <- x@col_locations
@@ -94,32 +106,4 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
     }
     x_tb
   }
-})
-
-# gradient_descent ####
-## generic function
-setGeneric("gradient_descent",
-           function(x, y, w_init, b_init, learning_rate, n_epochs) {
-             standardGeneric("gradient_descent")
-           })
-
-## implementation
-setMethod("gradient_descent", "LazyMatrix", function(x, y, w_init, b_init,
-                                                     learning_rate, n_epochs){
-  s <- 1/x@col_scales
-  c <- x@col_locations
-  w <- w_init
-  b <- b_init
-  for (epoch in 1:n_epochs){
-    indices <- sample(1:nrow(x@data))
-    for (i in indices){
-      x_i <- x@data[i, ]
-      y_pred <- sum(x_i * s * w) - sum(c * s * w) + b
-      #y_i <- sum(x_i * w_stand) + b_stand
-      error_i <- y_pred - y[i]
-      w <- w - learning_rate * x_i* s * error_i + learning_rate * c * s * error_i
-      b <- b - learning_rate * error_i
-    }
-  }
-  list(w = w, b = b)
 })

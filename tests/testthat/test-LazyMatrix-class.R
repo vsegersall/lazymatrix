@@ -1,3 +1,21 @@
+# === Helper functions === ####
+gradient_descent_helper <- function(x, y, w_init, b_init,
+                                    learning_rate, n_epochs){
+  w <- w_init
+  b <- b_init
+  n <- nrow(x)
+  for (epoch in 1:n_epochs){
+    y_pred <- as.vector(x %*% w) + b
+    error <- y_pred - y
+    w <- w - (learning_rate * crossprod(x, error))/n
+    b <- b - (learning_rate * sum(error))/n
+  }
+  return(list(w=w, b=b))
+}
+
+
+# === Tests === ####
+
 # Class definition ####
 test_that("Class definition works fine.", {
   mat.a <- matrix(1:4, 2, 2)
@@ -135,34 +153,21 @@ test_that("Gradient descent algorithm works. ", {
   learning_rate <- 0.01
   n_epochs <- 10
 
-  # 3. Gradient descent non-lazy
-  w_stand <- w_init
-  b_stand <- b_init
-  set.seed(999)
-  for (epoch in 1:n_epochs){
-    indices <- sample(1:nrow(scaled_a))
-    for (i in indices){
-      x_i <- scaled_a[i, ]
-      y_i <- sum(x_i * w_stand) + b_stand
-      error_i <- y_i - y_true[i]
-      w_stand <- w_stand - learning_rate * x_i * error_i
-      b_stand <- b_stand - learning_rate * error_i
-    }
-  }
-  expected_preds <- scaled_a %*% w_stand + b_stand
-
-  # 4. Gradient descent, lazy
-  w_lazy <- w_init
-  b_lazy <- b_init
-  set.seed(999)
-  lazy_results <- gradient_descent(lazy_a, y=y_true,
-                                   w_init = w_lazy, b_init = b_lazy,
-                                   learning_rate = learning_rate,
-                                   n_epochs = n_epochs)
+  # 4. Run gradient descent, lazy and not lazy
+  pars_nonlazy <- gradient_descent_helper(x=scaled_a, y=y_true,
+                                          w_init=w_init, b_init=b_init,
+                                          learning_rate=learning_rate,
+                                          n_epochs=n_epochs)
+  pars_lazy <- gradient_descent_helper(x=lazy_a, y=y_true,
+                                          w_init=w_init, b_init=b_init,
+                                          learning_rate=learning_rate,
+                                          n_epochs=n_epochs)
+  preds_nonlazy <- scaled_a %*% pars_nonlazy$w + pars_nonlazy$b
+  preds_lazy <- lazy_a %*% pars_lazy$w + pars_lazy$b
 
   # 5. Test
-  expect_equal(w_stand, lazy_results$w)
-  expect_equal(b_stand, lazy_results$b)
+  expect_equal(as.vector(pars_nonlazy$w), pars_lazy$w)
+  expect_equal(pars_nonlazy$b, pars_lazy$b)
   observed_preds <- lazy_a %*% lazy_results$w + lazy_results$b
-  expect_equal(as.vector(expected_preds), as.vector(observed_preds))
+  expect_equal(as.vector(preds_nonlazy), as.vector(preds_lazy))
 })
