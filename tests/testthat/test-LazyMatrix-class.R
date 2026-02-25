@@ -168,6 +168,5 @@ test_that("Gradient descent algorithm works. ", {
   # 5. Test
   expect_equal(as.vector(pars_nonlazy$w), pars_lazy$w)
   expect_equal(pars_nonlazy$b, pars_lazy$b)
-  observed_preds <- lazy_a %*% lazy_results$w + lazy_results$b
   expect_equal(as.vector(preds_nonlazy), as.vector(preds_lazy))
 })
