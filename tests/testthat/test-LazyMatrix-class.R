@@ -114,9 +114,9 @@ test_that("Crossprod works. ", {
   expect_equal(exp.outcome, obs.outcome)
 
   # gram matrix
-  #exp.gram <- t(scale.mat) %*% (mat.at - t(expected.locations)) %*% (mat.a - expected.locations) %*% scale.mat
-  #obs.gram <- crossprod(lazy.a)
-  #expect_equal(exp.gram, obs.gram)
+  exp.gram <- t(scale.mat) %*% (mat_at - t(expected.locations)) %*% (mat_a - expected.locations) %*% scale.mat
+  obs.gram <- crossprod(lazy_a)
+  expect_equal(exp.gram, obs.gram)
 })
 
 # Gradient descent ####

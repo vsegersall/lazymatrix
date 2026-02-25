@@ -74,14 +74,15 @@ setMethod("ncol", "LazyMatrix", function(x){
   base::ncol(x@data)
 })
 
-# Matrix Multiplication ####
+# matrix multiplication ####
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
+  # X_tilde b = X S^-1 b - C S^-1 b
   s <- 1/x@col_scales
   c <- x@col_locations
   x@data %*% (s * y) - sum(c * s * y)
 })
 
-# Transpose ####
+# transpose ####
 setMethod("t", "LazyMatrix", function(x){
   x_transpose <- t(x@data)
   new("LazyMatrix", data = x_transpose,
@@ -93,11 +94,21 @@ setMethod("t", "LazyMatrix", function(x){
 setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
   if (is.null(y)){
     # gram matrix
+    # X_tilde^T X_tilde = S^-1 X^T X S^-1 - n S^-1 c c^T S^-1
+    s <- 1/x@col_scales
+    S_inv <- Matrix::Diagonal(length(x@col_scales), s)
+    c <- x@col_locations
+    n <- nrow(x@data)
+    xt_x <- base::crossprod(x@data)
+    first_term <- S_inv %*% xt_x %*% S_inv
+    cc_t <- c %*% t(c)
+    second_term <- n * S_inv %*% cc_t %*% S_inv
+    first_term - second_term
   }
   else{
     # t(X) %*% y
+    # X_tilde^T b = S^1 X^T b - S^1 C^T b
     s <- 1/x@col_scales
-    #S_inv <- Matrix::Diagonal(length(x@col_scales), s)
     c <- x@col_locations
     x_tb <- Matrix::Matrix(0, nrow = ncol(x@data),
                            ncol = 1, sparse = FALSE)
