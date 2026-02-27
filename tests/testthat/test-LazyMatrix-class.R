@@ -13,6 +13,13 @@ gradient_descent_helper <- function(x, y, w_init, b_init,
   return(list(w=w, b=b))
 }
 
+cholesky_decomp <- function(A){
+  L <- Matrix::chol(A)
+  M <- t(L)
+  A_new <- M %*% L
+  return(A_new)
+}
+
 # === Tests === ####
 
 # Class definition ####
