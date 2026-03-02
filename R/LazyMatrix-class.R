@@ -80,7 +80,10 @@ setMethod("as.matrix", "LazyMatrix", function(x){
   s <- 1/x@col_scales
   S_inv <- Matrix::Diagonal(length(x@col_scales), s)
   c <- x@col_locations
-  result <- x@data %*% S_inv - sum(c * s)
+  first_term <- x@data %*% S_inv
+  second_term <- Matrix::Matrix(c * s, nrow=nrow(first_term),
+                                ncol=length(s), byrow=TRUE)
+  result <- first_term - second_term
   base::as.matrix(result)
 })
 
