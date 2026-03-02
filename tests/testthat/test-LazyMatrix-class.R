@@ -17,7 +17,8 @@ cholesky_decomp <- function(A){
   L <- Matrix::chol(A)
   M <- t(L)
   A_new <- M %*% L
-  return(A_new)
+  return(list(A=A,  L = L,
+              M=M))
 }
 
 # === Tests === ####
@@ -175,4 +176,42 @@ test_that("Crossprod works with gradient descent algorithm. ", {
   expect_equal(pars_nonlazy$w, pars_lazy$w)
   expect_equal(pars_nonlazy$b, pars_lazy$b)
   expect_equal(preds_nonlazy, preds_lazy)
+})
+
+# Cholesky decomposition ####
+test_that("Cholesky decomposition works. ", {
+  # 1. Define non lazy matrix
+  mat_a <- base::matrix(c(25, 15, -5,
+                          15, 18, 0,
+                          -5, 0, 11), nrow = 3)
+  b <- c(1, 2, 3)
+  expected.means <- Matrix::colMeans(mat_a)
+  expected.locations <- matrix(0, nrow=nrow(mat_a),
+                               ncol=ncol(mat_a))
+  for (i in 1:nrow(expected.locations)){
+    expected.locations[i,] <- expected.means
+  }
+  expected.sd <- base::apply(mat_a, 2, sd)
+  expected.scale <- 1/expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
+                                x = expected.scale)
+
+  # 2. Define lazy object
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+
+  # 3. Cholesky decomp
+  non_lazy <- cholesky_decomp(mat_a)
+  lazy <- cholesky_decomp(lazy_a)
+
+  # 4. Solve lower system
+  ## Solve the lower triangular system Lx = b for x using forward substitution
+  non_lazy_l_sol <- solve(non_lazy$L, b)
+  lazy_l_sol <- solve(lazy$L, b)
+  expect_equal(non_lazy_l_sol, lazy_l_sol)
+
+  # 5. Solve upper system
+  ## Solve the upper triangular system t(L)x = y for x using backward substitution
+  non_lazy_u_sol <- solve(non_lazy$M, b)
+  lazy_u_sol <- solve(lazy$M, b)
+  expect_equal(non_lazy_u_sol, lazy_u_sol)
 })
