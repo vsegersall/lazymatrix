@@ -17,8 +17,8 @@ cholesky_decomp <- function(A){
   L <- Matrix::chol(A)
   M <- t(L)
   A_new <- M %*% L
-  return(list(A=A,  L = L,
-              M=M))
+  return(list(A=A,  "upper" = L,
+              "lower"=M))
 }
 
 # === Tests === ####
@@ -195,23 +195,35 @@ test_that("Cholesky decomposition works. ", {
   expected.scale <- 1/expected.sd
   scale.mat <- Matrix::Diagonal(n = length(expected.scale),
                                 x = expected.scale)
+  scaled_a <- (mat_a - expected.locations) %*% scale.mat
 
   # 2. Define lazy object
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 
-  # 3. Cholesky decomp
-  non_lazy <- cholesky_decomp(mat_a)
-  lazy <- cholesky_decomp(lazy_a)
+  # 3. Construct symmetric positive definit matrices
+  gram_manual <- t(scaled_a) %*% scaled_a
+  gram_lazy <- crossprod(lazy_a)
 
-  # 4. Solve lower system
+  # 4. Test for positive definite
+  eigen_manual <- eigen(gram_manual)$values
+  expect_true(all(eigen_manual > 0))
+  eigen_lazy <- eigen(gram_lazy)$values
+  expect_true(all(eigen_lazy > 0))
+  expect_equal(gram_manual, gram_lazy)
+
+  # 5. Cholesky decomp
+  non_lazy <- cholesky_decomp(gram_manual)
+  lazy <- cholesky_decomp(gram_lazy)
+
+  # 6. Solve lower system
   ## Solve the lower triangular system Lx = b for x using forward substitution
-  non_lazy_l_sol <- solve(non_lazy$L, b)
-  lazy_l_sol <- solve(lazy$L, b)
+  non_lazy_l_sol <- solve(non_lazy$lower, b)
+  lazy_l_sol <- solve(lazy$lower, b)
   expect_equal(non_lazy_l_sol, lazy_l_sol)
 
-  # 5. Solve upper system
+  # 7. Solve upper system
   ## Solve the upper triangular system t(L)x = y for x using backward substitution
-  non_lazy_u_sol <- solve(non_lazy$M, b)
-  lazy_u_sol <- solve(lazy$M, b)
+  non_lazy_u_sol <- solve(non_lazy$upper, b)
+  lazy_u_sol <- solve(lazy$upper, b)
   expect_equal(non_lazy_u_sol, lazy_u_sol)
 })
