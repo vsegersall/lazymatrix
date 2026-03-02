@@ -17,11 +17,16 @@ cholesky_decomp <- function(A){
   L <- Matrix::chol(A)
   M <- t(L)
   A_new <- M %*% L
-  return(list(A=A,  "upper" = L,
+  return(base::list(A=A,  "upper" = L,
               "lower"=M))
 }
 
-# === Tests === ####
+linear_regression <- function(x, y){
+  x <- as.matrix(x)
+  return(stats::lm(y~x))
+}
+
+# === Function Tests === ####
 
 # Class definition ####
 test_that("Class definition works fine.", {
@@ -127,6 +132,8 @@ test_that("Crossprod works. ", {
   expect_equal(exp.gram, obs.gram)
 })
 
+# === Algorithmic Tests === ####
+
 # Gradient descent ####
 test_that("Crossprod works with gradient descent algorithm. ", {
   set.seed(2121)
@@ -181,9 +188,8 @@ test_that("Crossprod works with gradient descent algorithm. ", {
 # Cholesky decomposition ####
 test_that("Cholesky decomposition works. ", {
   # 1. Define non lazy matrix
-  mat_a <- base::matrix(c(25, 15, -5,
-                          15, 18, 0,
-                          -5, 0, 11), nrow = 3)
+  set.seed(123)
+  mat_a <- matrix(rnorm(30), nrow=10, ncol=3)  # 10×3 matris
   b <- c(1, 2, 3)
   expected.means <- Matrix::colMeans(mat_a)
   expected.locations <- matrix(0, nrow=nrow(mat_a),
@@ -205,11 +211,9 @@ test_that("Cholesky decomposition works. ", {
   gram_lazy <- crossprod(lazy_a)
 
   # 4. Test for positive definite
-  eigen_manual <- eigen(gram_manual)$values
-  expect_true(all(eigen_manual > 0))
-  eigen_lazy <- eigen(gram_lazy)$values
-  expect_true(all(eigen_lazy > 0))
   expect_equal(gram_manual, gram_lazy)
+  eigen_manual <- eigen(gram_lazy)$values
+  expect_true(all(eigen_manual > 0))
 
   # 5. Cholesky decomp
   non_lazy <- cholesky_decomp(gram_manual)
@@ -226,4 +230,39 @@ test_that("Cholesky decomposition works. ", {
   non_lazy_u_sol <- solve(non_lazy$upper, b)
   lazy_u_sol <- solve(lazy$upper, b)
   expect_equal(non_lazy_u_sol, lazy_u_sol)
+})
+
+# Linear Regression ####
+test_that("Linear regression works. ", {
+  # 1. Define non lazy matrix
+  set.seed(123)
+  mat_a <- matrix(rnorm(30), nrow=10, ncol=3)
+  expected.means <- Matrix::colMeans(mat_a)
+  expected.locations <- matrix(0, nrow=nrow(mat_a),
+                               ncol=ncol(mat_a))
+  for (i in 1:nrow(expected.locations)){
+    expected.locations[i,] <- expected.means
+  }
+  expected.sd <- base::apply(mat_a, 2, sd)
+  expected.scale <- 1/expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
+                                x = expected.scale)
+  scaled_a <- (mat_a - expected.locations) %*% scale.mat
+
+  # 2. Define lazy object
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+
+  # 3. Define response
+  set.seed(456)
+  y <- rnorm(nrow(mat_a))
+
+  # 4. Fit models
+  mod_base <- linear_regression(scaled_a, y)
+  mod_lazy <- linear_regression(lazy_a, y)
+
+  # 5. Tests
+  #expect_s3_class(mod_lazy, "lm")
+  expect_equal(coef(mod_base), coef(mod_lazy))
+  expect_equal(fitted(mod_base), fitted(mod_lazy))
+  expect_equal(residuals(mod_base), residuals(mod_lazy))
 })

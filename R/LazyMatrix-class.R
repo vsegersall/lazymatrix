@@ -74,6 +74,16 @@ setMethod("ncol", "LazyMatrix", function(x){
   base::ncol(x@data)
 })
 
+# as.matrix ####
+setMethod("as.matrix", "LazyMatrix", function(x){
+  # X_tilde = X S^-1 - C S^-1
+  s <- 1/x@col_scales
+  S_inv <- Matrix::Diagonal(length(x@col_scales), s)
+  c <- x@col_locations
+  result <- x@data %*% S_inv - sum(c * s)
+  base::as.matrix(result)
+})
+
 # matrix multiplication ####
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
   # X_tilde b = X S^-1 b - C S^-1 b
@@ -119,3 +129,5 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
     x_tb
   }
 })
+
+
