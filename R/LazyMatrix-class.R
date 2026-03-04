@@ -74,6 +74,12 @@ setMethod("ncol", "LazyMatrix", function(x){
   base::ncol(x@data)
 })
 
+# dim ####
+setGeneric("dim")
+setMethod("dim", "LazyMatrix", function(x){
+  base::dim(x@data)
+})
+
 # as.matrix ####
 setMethod("as.matrix", "LazyMatrix", function(x){
   # X_tilde = X S^-1 - C S^-1
@@ -133,4 +139,17 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
   }
 })
 
+# svd ####
+setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)){
+  if (missing(nu)) nu <- 5
+  if (missing(nv)) nv <- 5
 
+  n <- nrow(x)
+  p <- ncol(x)
+
+  max_k <- min(n, p) - 1
+  nu <- min(nu, max_k)
+  nv <- min(nv, max_k)
+
+  irlba::irlba(x, nu = nu, nv = nv)
+})
