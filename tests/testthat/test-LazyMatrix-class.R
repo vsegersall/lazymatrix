@@ -135,7 +135,7 @@ test_that("Crossprod works. ", {
 # === Algorithmic Tests === ####
 
 # Gradient descent ####
-test_that("Crossprod works with gradient descent algorithm. ", {
+test_that("Gradient descent algorithm works. ", {
   set.seed(2121)
 
   # 1. Set up design matrix, non-lazy
@@ -265,4 +265,19 @@ test_that("Linear regression works. ", {
   expect_equal(coef(mod_base), coef(mod_lazy))
   expect_equal(fitted(mod_base), fitted(mod_lazy))
   expect_equal(residuals(mod_base), residuals(mod_lazy))
+})
+
+# PCA ####
+test_that("PCA works. ", {
+  # 1. Define non lazy matrix
+  set.seed(123)
+  mat_a <- matrix(rnorm(30), nrow=10, ncol=3)
+
+  # 2. Define LazyMatrix
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+
+  # 3. Check that PCA works the same
+  pca_normal <- stats::prcomp(mat_a, scale=TRUE)
+  pca_lazy <- stats::prcomp(lazy_a)
+  expect_equal(pca_normal$rotation, pca_lazy$rotation)
 })
