@@ -132,6 +132,25 @@ test_that("Crossprod works. ", {
   expect_equal(exp.gram, obs.gram)
 })
 
+# Sparse SVD with irlba ####
+test_that("SVD works. ", {
+  # 1. Define non lazy matrix
+  set.seed(123)
+  mat_a <- matrix(rnorm(60), nrow=10, ncol=6)
+  scaled_a <- scale(mat_a)
+
+  # 2. Define LazyMatrix
+  lazy_a <- LazyMatrix(mat_a, scale="sd",
+                       location = "mean")
+
+  # 3. Perform SVD
+  svd_norm <- irlba::irlba(scaled_a)
+  svd_lazy <- svd(lazy_a)
+
+  # 4. Test
+  expect_equal(svd_norm, svd_lazy)
+})
+
 # === Algorithmic Tests === ####
 
 # Gradient descent ####
