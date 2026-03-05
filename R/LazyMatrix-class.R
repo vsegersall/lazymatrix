@@ -94,11 +94,17 @@ setMethod("as.matrix", "LazyMatrix", function(x){
 })
 
 # matrix multiplication ####
+## LazyMatrix & vector
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
   # X_tilde b = X S^-1 b - C S^-1 b
   s <- 1/x@col_scales
   c <- x@col_locations
   x@data %*% (s * y) - sum(c * s * y)
+})
+
+## Vector & LazyMatrix
+setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y){
+  t(crossprod(y, x))
 })
 
 # transpose ####
@@ -151,5 +157,11 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)){
   nu <- min(nu, max_k)
   nv <- min(nv, max_k)
 
-  irlba::irlba(x, nu = nu, nv = nv)
+  # Adapter för irlba: använd S4 dispatch och konvertera output
+  mult_func <- function(x, y) {
+    result <- x %*% y  # S4 dispatch väljer rätt metod
+    as.vector(result)  # Konvertera för irlba
+  }
+
+  irlba::irlba(x, nu = nu, nv = nv, mult = mult_func)
 })
