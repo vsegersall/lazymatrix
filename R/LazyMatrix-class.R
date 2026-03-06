@@ -221,6 +221,7 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
   x@data %*% (s * y) - sum(c * s * y)
 })
 
+<<<<<<< HEAD
 ## Vector & LazyMatrix
 #' Matrix multiplication for vector and LazyMatrix
 #'
@@ -235,8 +236,25 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
 #' b <- c(1, 2)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' b %*% lazy_a
+=======
+## vector & LazyMatrix
+>>>>>>> fea32ef (svd and pca on new branch.)
 setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y){
   t(crossprod(y, x))
+})¨
+
+## LazyMatrix & matrix
+setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y){
+  # X_tilde M = X S^-1 M - C S^-1 M
+  s <- 1/x@col_scales
+  c <- x@col_locations
+  first_term <- x@data %*% (s * y)
+  centering_row <- as.vector((c * s) %*% y)
+  centering_matrix <- base::matrix(centering_row,
+                             nrow = nrow(x),
+                             ncol = ncol(y),
+                             byrow = TRUE)
+  first_term - centering_matrix
 })
 
 # crossprod ####
@@ -282,4 +300,62 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
     }
     x_tb
   }
+})
+
+# svd ####
+setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)){
+  if (missing(nu)) nu <- 5
+  if (missing(nv)) nv <- 5
+
+  n <- nrow(x)
+  p <- ncol(x)
+
+  # Remove 1 dimension to be compatible with irlba
+  max_k <- min(n, p) - 1
+  nu <- min(nu, max_k)
+  nv <- min(nv, max_k)
+
+  # Adapter through S4 dispatch
+  mult_func <- function(x, y) {
+    result <- x %*% y
+    as.vector(result) # Create correct type for irlba
+  }
+  irlba::irlba(x, nu = nu, nv = nv, mult = mult_func)
+})
+
+# prcomp ####
+setMethod("prcomp", "LazyMatrix", function(x, retx = TRUE, tol = NULL,
+                                           rank. = NULL, ...){
+  cen <- x@col_locations
+  sc <- x@col_scales
+  if (any(sc == 0))
+    stop("cannot rescale a constant/zero column to unit variance")
+  n <- nrow(x)
+  p <- ncol(x)
+  k <- if (!is.null(rank.)) {
+    stopifnot(length(rank.) == 1, is.finite(rank.), as.integer(rank.) >
+                0)
+    min(as.integer(rank.), n, p)
+  }
+  else min(n, p)
+  k <- min(k, min(n, p) - 1)
+  s <- svd(x, nu = 0, nv= k)
+  j <- base::seq_len(k)
+  s$d <- s$d / base::sqrt(max(1, n-1))
+  if (!is.null(tol)) {
+    rank <- sum(s$d > (s$d[1L] * tol))
+    if (rank < k) {
+      j <- seq_len(k <- rank)
+      s$v <- s$v[, j, drop = FALSE]
+    }
+  }
+  center = if(length(cen) > 0) cen else FALSE
+  scale = if(length(sc) > 0) sc else FALSE
+  dimnames(s$v) <- list(colnames(x), paste0("PC", j))
+  r <- list(sdev = s$d, rotation = s$v, center = center,
+            scale = scale)
+  if (retx)
+    r$x <- x %*% s$v
+  base::class(r) <- "prcomp"
+  r
 })
