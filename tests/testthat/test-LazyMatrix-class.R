@@ -290,13 +290,17 @@ test_that("Linear regression works. ", {
 test_that("PCA works. ", {
   # 1. Define non lazy matrix
   set.seed(123)
-  mat_a <- matrix(rnorm(30), nrow=10, ncol=3)
+  mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
 
   # 2. Define LazyMatrix
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 
-  # 3. Check that PCA works the same
-  pca_normal <- stats::prcomp(mat_a, scale=TRUE)
-  #pca_lazy <- stats::prcomp(lazy_a)
-  #expect_equal(pca_normal$rotation, pca_lazy$rotation)
+  # 3. fit pca
+  pca_normal <- stats::prcomp(mat_a, scale=TRUE, center=TRUE)
+  pca_lazy <- prcomp(lazy_a)
+
+  # 4. Test with tolerance due to iterative nature of irlba
+  expect_equal(abs(pca_normal$rotation), abs(pca_lazy$rotation), tolerance = 1e-5)
+  expect_equal(pca_normal$sdev, pca_lazy$sdev, tolerance = 1e-5)
+  expect_equal(abs(pca_normal$x), abs(pca_lazy$x), tolerance = 1e-5)
 })
