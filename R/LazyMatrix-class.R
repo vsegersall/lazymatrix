@@ -171,39 +171,3 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)){
 
   irlba::irlba(x, nu = nu, nv = nv, mult = mult_func)
 })
-
-# prcomp ####
-setMethod("prcomp", "LazyMatrix", function(x, retx = TRUE, tol = NULL,
-                                           rank. = NULL, ...){
-  cen <- x@col_locations
-  sc <- x@col_scales
-  if (any(sc == 0))
-    stop("cannot rescale a constant/zero column to unit variance")
-  n <- nrow(x)
-  p <- ncol(x)
-  k <- if (!is.null(rank.)) {
-    stopifnot(length(rank.) == 1, is.finite(rank.), as.integer(rank.) >
-                0)
-    min(as.integer(rank.), n, p)
-  }
-  else min(n, p) - 1
-  s <- svd(x, nu = 0, nv= k)
-  j <- base::seq_len(k)
-  s$d <- s$d / base::sqrt(max(1, n-1))
-  if (!is.null(tol)) {
-    rank <- sum(s$d > (s$d[1L] * tol))
-    if (rank < k) {
-      j <- seq_len(k <- rank)
-      s$v <- s$v[, j, drop = FALSE]
-    }
-  }
-  center = if(length(cen) > 0) cen else FALSE
-  scale = if(length(sc) > 0) sc else FALSE
-  dimnames(s$v) <- list(colnames(x), paste0("PC", j))
-  r <- list(sdev = s$d, rotation = s$v, center = center,
-            scale = scale)
-  if (retx)
-    r$x <- x %*% s$v
-  base::class(r) <- "prcomp"
-  r
-})
