@@ -150,24 +150,3 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
     x_tb
   }
 })
-
-# svd ####
-setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)){
-  if (missing(nu)) nu <- 5
-  if (missing(nv)) nv <- 5
-
-  n <- nrow(x)
-  p <- ncol(x)
-
-  max_k <- min(n, p) - 1
-  nu <- min(nu, max_k)
-  nv <- min(nv, max_k)
-
-  # Adapter för irlba: använd S4 dispatch och konvertera output
-  mult_func <- function(x, y) {
-    result <- x %*% y  # S4 dispatch väljer rätt metod
-    as.vector(result)  # Konvertera för irlba
-  }
-
-  irlba::irlba(x, nu = nu, nv = nv, mult = mult_func)
-})
