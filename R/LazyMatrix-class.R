@@ -241,7 +241,7 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
 >>>>>>> fea32ef (svd and pca on new branch.)
 setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y){
   t(crossprod(y, x))
-})¨
+})
 
 ## LazyMatrix & matrix
 setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y){
