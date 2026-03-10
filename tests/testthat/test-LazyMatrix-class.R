@@ -72,7 +72,7 @@ test_that("Class definition works", {
 })
 
 # Matrix multiplication ####
-test_that("Lazy multiplication computation works. ", {
+test_that("Lazy multiplication computation works", {
   # 1. Define non-lazy object
   mat_a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
@@ -84,6 +84,7 @@ test_that("Lazy multiplication computation works. ", {
 
   # 3. Define test objects
   b <- c(1, 2, 3)
+  c <- c(1, 2)
   set.seed(123)
   m <- base::matrix(rnorm(6), nrow=3,
                     ncol=2)
@@ -97,10 +98,16 @@ test_that("Lazy multiplication computation works. ", {
   normal_m <- scaled_a %*% m
   lazy_m <- lazy_a %*% m
   expect_equal(normal_m, lazy_m)
+
+  # 6. Test: vector %*% matrix
+  #normal_v <- crossprod(c, scaled_a)
+  normal_v <- c %*% scaled_a
+  lazy_v <- c %*% lazy_a
+  expect_equal(normal_v, lazy_v)
 })
 
 # Transpose ####
-test_that("Lazy tranpose works. ", {
+test_that("Lazy tranpose works", {
   mat.a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
   mat.at <- base::t(mat.a)
@@ -111,7 +118,7 @@ test_that("Lazy tranpose works. ", {
 })
 
 # Crossproduct ####
-test_that("Crossprod works. ", {
+test_that("Crossprod works", {
   mat_a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
   mat_at <- base::t(mat_a)
@@ -142,14 +149,14 @@ test_that("Crossprod works. ", {
 })
 
 # Sparse SVD with irlba ####
-test_that("SVD works. ", {
+test_that("SVD works", {
   # 1. Define non lazy matrix
   set.seed(123)
   mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
   scaled_a <- scale(mat_a)
 
   # 2. Define LazyMatrix
-  lazy_a <- LazyMatrix(mat_a, scale="sd",
+  lazy_a <- LazyMatrix(mat_a, scale = "sd",
                        location = "mean")
 
   # 3. Perform SVD
@@ -163,7 +170,7 @@ test_that("SVD works. ", {
 # === Algorithmic Tests === ####
 
 # Gradient descent ####
-test_that("Gradient descent algorithm works. ", {
+test_that("Gradient descent algorithm works", {
   set.seed(2121)
 
   # 1. Set up design matrix, non-lazy
@@ -261,7 +268,7 @@ test_that("Cholesky decomposition works", {
 })
 
 # Linear Regression ####
-test_that("Linear regression works. ", {
+test_that("Linear regression works", {
   # 1. Define non lazy matrix
   set.seed(123)
   mat_a <- matrix(rnorm(30), nrow=10, ncol=3)
@@ -296,7 +303,7 @@ test_that("Linear regression works. ", {
 })
 
 # PCA ####
-test_that("PCA works. ", {
+test_that("PCA works", {
   # 1. Define non lazy matrix
   set.seed(123)
   mat_a <- matrix(rnorm(500), nrow=50, ncol=10)

@@ -82,7 +82,7 @@ LazyMatrix <- function(data, scale = NULL,
 }
 
 # Validity checks on the arguments
-setValidity("LazyMatrix", function(object){
+setValidity("LazyMatrix", function(object) {
   # 1. check that data is a matrix: this is crucial for how the methods are
   ## implemented
   # 2. Check for location and scale
@@ -118,7 +118,7 @@ setGeneric("ncol")
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' ncol(lazy_a)
-setMethod("ncol", "LazyMatrix", function(x){
+setMethod("ncol", "LazyMatrix", function(x) {
   base::ncol(x@data)
 })
 
@@ -135,7 +135,7 @@ setGeneric("dim")
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' dim(lazy_a)
-setMethod("dim", "LazyMatrix", function(x){
+setMethod("dim", "LazyMatrix", function(x) {
   base::dim(x@data)
 })
 
@@ -168,7 +168,7 @@ setMethod("colnames", "LazyMatrix", function(x){
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' as.matrix(lazy_a)
-setMethod("as.matrix", "LazyMatrix", function(x){
+setMethod("as.matrix", "LazyMatrix", function(x) {
   # X_tilde = X S^-1 - C S^-1
   s <- 1/x@col_scales
   S_inv <- Matrix::Diagonal(length(x@col_scales), s)
@@ -199,6 +199,12 @@ setMethod("t", "LazyMatrix", function(x){
       col_locations = x@row_locations, row_locations = x@col_locations)
 })
 
+# colnames ####
+setGeneric("colnames")
+setMethod("colnames", "LazyMatrix", function(x) {
+  base::colnames(x@data)
+})
+
 # matrix multiplication ####
 ## LazyMatrix & vector
 #' Matrix multiplication for LazyMatrix and vector
@@ -214,14 +220,13 @@ setMethod("t", "LazyMatrix", function(x){
 #' b <- c(1, 2, 3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' lazy_a %*% b
-setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
+setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y) {
   # X_tilde b = X S^-1 b - C S^-1 b
   s <- 1/x@col_scales
   c <- x@col_locations
   x@data %*% (s * y) - sum(c * s * y)
 })
 
-<<<<<<< HEAD
 ## Vector & LazyMatrix
 #' Matrix multiplication for vector and LazyMatrix
 #'
@@ -236,15 +241,25 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
 #' b <- c(1, 2)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' b %*% lazy_a
-=======
-## vector & LazyMatrix
->>>>>>> fea32ef (svd and pca on new branch.)
-setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y){
-  t(crossprod(y, x))
+setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y) {
+  # t(x) %*%  y
+  # x is vector and y LazyMatrix
+  # b^t X_tilde = b^t X S^1 - b^t C S^1
+  s <- 1/y@col_scales
+  c <- y@col_locations
+  #b_tx <- Matrix::Matrix(0, nrow = 1,
+                         #ncol = ncol(y@data), sparse = FALSE)
+  b_tx <- base::matrix(0, nrow = 1, ncol = ncol(y@data))
+  sum_b <- base::sum(x)
+  for (j in seq_along(s)) {
+    b_tx[j] <- s[j] * sum(x * y@data[,j]) - s[j] * sum_b * c[j]
+  }
+  b_tx
+  # t(crossprod(y, x))
 })
 
-## LazyMatrix & matrix
-setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y){
+## LazyMatrix & matrix ####
+setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
   # X_tilde M = X S^-1 M - C S^-1 M
   s <- 1/x@col_scales
   c <- x@col_locations
@@ -273,7 +288,7 @@ setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y){
 #' lazy_a <- LazyMatrix(mat_a, scale="sd", location="mean")
 #' crossprod(lazy_a)
 #' crossprod(lazy_a, b)
-setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
+setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
   if (is.null(y)){
     # gram matrix
     # X_tilde^T X_tilde = S^-1 X^T X S^-1 - n S^-1 c c^T S^-1
@@ -303,7 +318,7 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
 })
 
 # svd ####
-setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)){
+setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
   if (missing(nu)) nu <- 5
   if (missing(nv)) nv <- 5
 
@@ -325,7 +340,7 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)){
 
 # prcomp ####
 setMethod("prcomp", "LazyMatrix", function(x, retx = TRUE, tol = NULL,
-                                           rank. = NULL, ...){
+                                           rank. = NULL, ...) {
   cen <- x@col_locations
   sc <- x@col_scales
   if (any(sc == 0))
