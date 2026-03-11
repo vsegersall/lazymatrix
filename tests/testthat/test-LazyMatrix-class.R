@@ -5,7 +5,7 @@ gradient_descent_helper <- function(x, y, w_init, b_init,
   b <- b_init
   n <- nrow(x)
   for (epoch in 1:n_epochs){
-    y_pred <- as.vector(x %*% w) + b
+    y_pred <- base::as.vector(x %*% w) + b
     error <- y_pred - y
     w <- w - (learning_rate * crossprod(x, error))/n
     b <- b - (learning_rate * sum(error))/n
@@ -29,11 +29,11 @@ linear_regression <- function(x, y){
 # === Function Tests === ####
 
 # Class definition ####
-test_that("Class definition works fine.", {
-  mat.a <- matrix(1:4, 2, 2)
-  a <- LazyMatrix(mat.a)
-  b <- LazyMatrix(mat.a, scale = "sd")
-  c <- LazyMatrix(mat.a, scale = "sd", location = "mean")
+test_that("Class definition works", {
+  mat_a <- base::matrix(1:4, 2, 2)
+  a <- LazyMatrix(mat_a)
+  b <- LazyMatrix(mat_a, scale = "sd")
+  c <- LazyMatrix(mat_a, scale = "sd", location = "mean")
 
   # 1. Check that each type is a LazyMatrix object
   expect_s4_class(a, "LazyMatrix")
@@ -41,24 +41,24 @@ test_that("Class definition works fine.", {
   expect_s4_class(c, "LazyMatrix")
 
   # 2. Check that we stored column locations properly
-  expected.col_location <- Matrix::colMeans(mat.a)
+  expected.col_location <- Matrix::colMeans(mat_a)
   observed.col_location <- c@col_locations
   expect_equal(expected.col_location, observed.col_location)
 
   # 3. Check that we stored row locations properly
-  expected.row_location <- Matrix::rowMeans(mat.a)
+  expected.row_location <- Matrix::rowMeans(mat_a)
   observed.row_location <- c@row_locations
   expect_equal(expected.row_location, observed.row_location)
 
   # 4. Check that we stored column scales properly
-  expected.col_scale <- base::apply(mat.a, 2, sd)
+  expected.col_scale <- base::apply(mat_a, 2, sd)
   observed.col_scale.1arg <- b@col_scales
   expect_equal(expected.col_scale, observed.col_scale.1arg)
   observed.col_scale.2args <- c@col_scales
   expect_equal(expected.col_scale, observed.col_scale.2args)
 
   # 5. Check that we stored row scales properly
-  expected.row_scale <- base::apply(mat.a, 1, sd)
+  expected.row_scale <- base::apply(mat_a, 1, sd)
   observed.row_scale.1arg <- b@row_scales
   expect_equal(expected.row_scale, observed.row_scale.1arg)
   observed.row_scale.2args <- c@row_scales
@@ -111,7 +111,7 @@ test_that("Crossprod works. ", {
   # crossprod() with vector
   b <- c(1, -1)
   expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- matrix(0, nrow=nrow(mat_a),
+  expected.locations <- base::matrix(0, nrow=nrow(mat_a),
                                ncol=ncol(mat_a))
   for (i in 1:nrow(expected.locations)){
     expected.locations[i,] <- expected.means
@@ -186,7 +186,7 @@ test_that("Gradient descent algorithm works. ", {
 })
 
 # Cholesky decomposition ####
-test_that("Cholesky decomposition works. ", {
+test_that("Cholesky decomposition works", {
   # 1. Define non lazy matrix
   set.seed(123)
   mat_a <- matrix(rnorm(30), nrow=10, ncol=3)  # 10×3 matris
@@ -212,7 +212,7 @@ test_that("Cholesky decomposition works. ", {
 
   # 4. Test for positive definite
   expect_equal(gram_manual, gram_lazy)
-  eigen_manual <- eigen(gram_lazy)$values
+  eigen_manual <- base::eigen(gram_lazy)$values
   expect_true(all(eigen_manual > 0))
 
   # 5. Cholesky decomp
@@ -254,7 +254,7 @@ test_that("Linear regression works. ", {
 
   # 3. Define response
   set.seed(456)
-  y <- rnorm(nrow(mat_a))
+  y <- stats::rnorm(nrow(mat_a))
 
   # 4. Fit models
   mod_base <- linear_regression(scaled_a, y)
