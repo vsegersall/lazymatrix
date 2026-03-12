@@ -1,38 +1,64 @@
-# Class definition ####
-setClass("LazyMatrix",
-  slots = c(
-    data = "ANY",
-    col_scales = "numeric",
-    row_scales = "numeric",
-    col_locations = "numeric",
-    row_locations = "numeric"
-  ),
-  prototype = list(
-    data = matrix(0),
-    col_scales = numeric(0),
-    row_scales = numeric(0),
-    col_locations = numeric(0),
-    row_locations = numeric(0)
-  )
-)
+#' @importFrom methods new
 
+#' @name LazyMatrix-class
+#' @title LazyMatrix S4 class
+#'
+#' @description An S4 class to represent a lazily transformed matrix with scaling and location parameters.
+#'
+#' @slot data The underlying matrix.
+#' @slot col_scales Numeric vector of column scales.
+#' @slot row_scales Numeric vector of row scales.
+#' @slot col_locations Numeric vector of column locations.
+#' @slot row_locations Numeric vector of row locations.
+#' @export
+#' @examples
+#' mat <- matrix(1:6, nrow=2, ncol=3)
+#' obj <- LazyMatrix(mat, "sd", "mean")
+setClass("LazyMatrix",
+         slots = c(
+           data = "ANY",
+           col_scales = "numeric",
+           row_scales = "numeric",
+           col_locations = "numeric",
+           row_locations = "numeric"
+         ),
+         prototype = list(
+           data = matrix(0),
+           col_scales = numeric(0),
+           row_scales = numeric(0),
+           col_locations = numeric(0),
+           row_locations = numeric(0)
+         )
+)
 # Helper ####
-## define location- and scale parameters
-## Compute and store them
+
+#' Constructs a LazyMatrix object.
+#'
+#' @param data a matrix object.
+#' @param scale optional scaling parameter.
+#' @param location optional location parameter.
+#'
+#' @returns A LazyMatrix object.
+#' @export
+#'
+#' @examples
+#' mat_a <- matrix(1:6, nrow=3, ncol=2)
+#' lazy_a <- LazyMatrix(mat_a, scale="sd", location="mean")
+#' lazy_a
 LazyMatrix <- function(data, scale = NULL,
                        location = NULL){
   # code for constructing helper
   col_scales <- if(is.null(scale)){
     numeric(0)
   } else if (scale == "sd"){
-    base::apply(data, 2, sd)
+    base::apply(data, 2, stats::sd)
   }else {
     numeric(0)
   }
   row_scales <- if(is.null(scale)){
     numeric(0)
   } else if (scale == "sd"){
-    base::apply(data, 1, sd)
+    base::apply(data, 1, stats::sd)
   }else {
     numeric(0)
   }
@@ -40,14 +66,14 @@ LazyMatrix <- function(data, scale = NULL,
     numeric(0)
   } else if (location == "mean"){
     Matrix::colMeans(data)
-  }else {
+  } else {
     numeric(0)
   }
   row_locations <- if(is.null(location)){
     numeric(0)
   } else if (location == "mean"){
     Matrix::rowMeans(data)
-  }else {
+  } else {
     numeric(0)
   }
   new("LazyMatrix", data = data,
@@ -64,23 +90,84 @@ setValidity("LazyMatrix", function(object){
 
 # nrow ####
 setGeneric("nrow")
+#' Returns the number of rows of the data matrix
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns an integer of length 1 or NULL.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' nrow(lazy_a)
 setMethod("nrow", "LazyMatrix", function(x){
   base::nrow(x@data)
 })
 
 # ncol ####
 setGeneric("ncol")
+#' Returns the number of columns of the data matrix
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns an integer of length 1 or NULL.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' ncol(lazy_a)
 setMethod("ncol", "LazyMatrix", function(x){
   base::ncol(x@data)
 })
 
 # dim ####
 setGeneric("dim")
+#' Returns the dimension of a LazyMarix Object.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns For an array (and hence in particular, for a matrix) dim retrieves the dim attribute of the object. It is NULL or a vector of mode integer. The replacement method changes the "dim" attribute (provided the new value is compatible) and removes any "dimnames" and "names" attributes.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' dim(lazy_a)
 setMethod("dim", "LazyMatrix", function(x){
   base::dim(x@data)
 })
 
+# colnames ####
+setGeneric("colnames")
+#' Retrieve or set the row or column names of a LazyMatrix object.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns A character vector of column names, or NULL if the matrix has no column names.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' colnames(lazy_a)
+setMethod("colnames", "LazyMatrix", function(x){
+  base::colnames(x@data)
+})
+
 # as.matrix ####
+#' Attempts to turn the data matrix to a scaled matrix-object.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns A matrix-object with scaled entries.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' as.matrix(lazy_a)
 setMethod("as.matrix", "LazyMatrix", function(x){
   # X_tilde = X S^-1 - C S^-1
   s <- 1/x@col_scales
@@ -93,14 +180,40 @@ setMethod("as.matrix", "LazyMatrix", function(x){
   base::as.matrix(result)
 })
 
-# colnames ####
-setGeneric("colnames")
-setMethod("colnames", "LazyMatrix", function(x){
-  base::colnames(x@data)
+# transpose ####
+#' Given a LazyMatrix x, t returns the transpose of x.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns A LazyMatrix object with the transposed data matrix.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_t <- t(lazy_a)
+setMethod("t", "LazyMatrix", function(x){
+  x_transpose <- t(x@data)
+  new("LazyMatrix", data = x_transpose,
+      col_scales = x@row_scales, row_scales = x@col_scales,
+      col_locations = x@row_locations, row_locations = x@col_locations)
 })
 
 # matrix multiplication ####
 ## LazyMatrix & vector
+#' Matrix multiplication for LazyMatrix and vector
+#'
+#' @description Multiplies a LazyMatrix object by a vector.
+#'
+#' @param x A LazyMatrix object.
+#' @param y A numeric vector.
+#' @returns A numeric matrix.
+#' @export
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' b <- c(1, 2, 3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_a %*% b
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
   # X_tilde b = X S^-1 b - C S^-1 b
   s <- 1/x@col_scales
@@ -109,19 +222,39 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
 })
 
 ## Vector & LazyMatrix
+#' Matrix multiplication for vector and LazyMatrix
+#'
+#' @description Multiplies a LazyMatrix object by a vector.
+#'
+#' @param x A numeric vector.
+#' @param y A LazyMatrix object.
+#' @returns A Matrix object of class dgeMatrix.
+#' @export
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' b <- c(1, 2)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' b %*% lazy_a
 setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y){
   t(crossprod(y, x))
 })
 
-# transpose ####
-setMethod("t", "LazyMatrix", function(x){
-  x_transpose <- t(x@data)
-  new("LazyMatrix", data = x_transpose,
-      col_scales = x@row_scales, row_scales = x@col_scales,
-      col_locations = x@row_locations, row_locations = x@col_locations)
-})
-
 # crossprod ####
+#' Crossproduct for LazyMatrix
+#'
+#' Computes the crossproduct of a LazyMatrix object with itself or with another vector/matrix.
+#'
+#' @param x A LazyMatrix object.
+#' @param y An optional numeric vector or matrix. If NULL, computes the Gram matrix of x.
+#' @returns A matrix: the Gram matrix if y is NULL, otherwise the crossproduct result.
+#' @export
+#' @aliases crossprod,LazyMatrix-method
+#' @examples
+#' mat_a <- matrix(rep(1, 6), nrow=2, ncol=3)
+#' b <- c(1, 2)
+#' lazy_a <- LazyMatrix(mat_a, scale="sd", location="mean")
+#' crossprod(lazy_a)
+#' crossprod(lazy_a, b)
 setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
   if (is.null(y)){
     # gram matrix
