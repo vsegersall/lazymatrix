@@ -201,6 +201,17 @@ setMethod("t", "LazyMatrix", function(x){
 
 # colnames ####
 setGeneric("colnames")
+#' Retrieve or set the row or column names of a LazyMatrix object.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns A character vector of column names, or NULL if the matrix has no column names.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' colnames(lazy_a)
 setMethod("colnames", "LazyMatrix", function(x) {
   base::colnames(x@data)
 })
@@ -259,6 +270,20 @@ setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y) {
 })
 
 ## LazyMatrix & matrix ####
+#' Matrix multiplication for LazyMatrix and matrix-object.
+#'
+#' @description Multiplies a LazyMatrix object by a matrix
+#'
+#' @param x A LazyMatrix object.
+#' @param y A matrix-object.
+#' @returns A matrix-object with the product of the lazy and non lazy object.
+#' @export
+#' @examples
+#' mat_a <- matrix(rep(1, 6), nrow = 2, ncol = 3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' set.seed(123)
+#' m <- matrix(rnorm(6), nrow = 3, ncol = 2)
+#' lazy_a %*% m
 setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
   # X_tilde M = X S^-1 M - C S^-1 M
   s <- 1/x@col_scales
@@ -318,6 +343,28 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
 })
 
 # svd ####
+#' @importFrom irlba irlba
+#' @title Singular Value decomposition for LazyMatrix.
+#'
+#' @description Performs lazy SVD using irlba for svd on sparse matrices.
+#' @param x A LazyMatrix object.
+#' @param nu number of left singular vectors to estimate (defaults to nv).
+#' @param nv  number of right singular vectors to estimate.
+#' @returns A list with entries:
+#'   \item{d}{max(nu, nv) approximate singular values}
+#'   \item{u}{nu approximate left singular vectors (only when right_only=FALSE)}
+#'   \item{v}{nv approximate right singular vectors}
+#'   \item{iter}{The number of Lanczos iterations carried out}
+#'   \item{mprod}{The total number of matrix vector products carried out}
+#' @export
+#'
+#' @examples
+#' set.seed(123)
+#' mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' lazy_a <-LazyMatrix(mat_a, scale = "sd", location = "mean")
+#' S <- svd(lazy_a)
+#' # Receive singular values with
+#' S$d
 setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
   if (missing(nu)) nu <- 5
   if (missing(nv)) nv <- 5
@@ -339,6 +386,27 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
 })
 
 # prcomp ####
+#' Performs a principal component analysis on the LazyMatrix object using irlba:s sparse svd.
+#'
+#' @param x a LazyMatrix object.
+#' @param retx a logical value indicating whether the rotated variables should be returned.
+#' @param tol a value indicating the magnitude below which components should be omitted. (Components are omitted if their standard deviations are less than or equal to tol times the standard deviation of the first component.) With the default null setting, no components are omitted (unless rank. is specified less than min(dim(x)).). Other settings for tol could be tol = 0 or tol = sqrt(.Machine$double.eps), which would omit essentially constant components.
+#' @param rank. optionally, a number specifying the maximal rank, i.e., maximal number of principal components to be used. Can be set as alternative or in addition to tol, useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
+#' @param ... Additional arguments passed to underlying methods.
+
+#' @return A list of class \code{\"prcomp\"} containing:
+#'   \item{sdev}{The standard deviations of the principal components (i.e., the square roots of the eigenvalues of the covariance/correlation matrix, calculated using the singular values of the data matrix).}
+#'   \item{rotation}{The matrix of variable loadings (columns are eigenvectors).}
+#'   \item{x}{If \code{retx} is TRUE, the value of the rotated data (centered and optionally scaled, multiplied by the rotation matrix).}
+#'   \item{center}{The centering used, or \code{FALSE}.}
+#'   \item{scale}{The scaling applied to the data, or \code{FALSE}}
+#' @export
+#'
+#' @examples
+#' set.seed(123)
+#' mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' pca_lazy <- prcomp(lazy_a)
 setMethod("prcomp", "LazyMatrix", function(x, retx = TRUE, tol = NULL,
                                            rank. = NULL, ...) {
   cen <- x@col_locations

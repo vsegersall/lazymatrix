@@ -5,17 +5,26 @@
 \title{Retrieve or set the row or column names of a LazyMatrix object.}
 \usage{
 \S4method{colnames}{LazyMatrix}(x)
+
+\S4method{colnames}{LazyMatrix}(x)
 }
 \arguments{
 \item{x}{A LazyMatrix object.}
 }
 \value{
 A character vector of column names, or NULL if the matrix has no column names.
+
+A character vector of column names, or NULL if the matrix has no column names.
 }
 \description{
 Retrieve or set the row or column names of a LazyMatrix object.
+
+Retrieve or set the row or column names of a LazyMatrix object.
 }
 \examples{
+mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+colnames(lazy_a)
 mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 colnames(lazy_a)

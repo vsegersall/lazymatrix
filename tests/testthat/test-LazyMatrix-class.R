@@ -157,7 +157,7 @@ test_that("SVD works", {
 
   # 2. Define LazyMatrix
   lazy_a <- LazyMatrix(mat_a, scale = "sd",
-                       location = "mean")
+                    location = "mean")
 
   # 3. Perform SVD
   svd_norm <- base::svd(scaled_a)
