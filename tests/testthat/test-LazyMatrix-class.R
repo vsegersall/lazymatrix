@@ -72,26 +72,42 @@ test_that("Class definition works", {
 })
 
 # Matrix multiplication ####
-test_that("Lazy multiplication computation works. ", {
-  # Expected outcome
-  mat.a <- base::matrix(c(1, 2, 3,
+test_that("Lazy multiplication computation works", {
+  # 1. Define non-lazy object
+  mat_a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
+  scaled_a <- scale(mat_a)
+
+
+  # 2. Define lazy object
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+
+  # 3. Define test objects
   b <- c(1, 2, 3)
-  expected.location <- Matrix::colMeans(mat.a)
-  expected.sd <- base::apply(mat.a, 2, sd)
-  expected.scale <- 1/expected.sd
-  expected.product <- mat.a %*% (expected.scale * b) - sum(expected.location * expected.scale * b)
+  c <- c(1, 2)
+  set.seed(123)
+  m <- base::matrix(rnorm(6), nrow=3,
+                    ncol=2)
 
-  # Observed outcome
-  a <- LazyMatrix(mat.a, "sd", "mean")
-  observed.product <- a %*% b
-
-  # Test
+  # 4. Test: matrix %*% vector
+  expected.product <- scaled_a %*% b
+  observed.product <- lazy_a %*% b
   expect_equal(expected.product, observed.product)
+
+  # 5. Test: matrix %*% matrix
+  normal_m <- scaled_a %*% m
+  lazy_m <- lazy_a %*% m
+  expect_equal(normal_m, lazy_m)
+
+  # 6. Test: vector %*% matrix
+  #normal_v <- crossprod(c, scaled_a)
+  normal_v <- c %*% scaled_a
+  lazy_v <- c %*% lazy_a
+  expect_equal(normal_v, lazy_v)
 })
 
 # Transpose ####
-test_that("Lazy tranpose works. ", {
+test_that("Lazy tranpose works", {
   mat.a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
   mat.at <- base::t(mat.a)
@@ -102,7 +118,7 @@ test_that("Lazy tranpose works. ", {
 })
 
 # Crossproduct ####
-test_that("Crossprod works. ", {
+test_that("Crossprod works", {
   mat_a <- base::matrix(c(1, 2, 3,
                           1, 2, 3), nrow=2, ncol=3)
   mat_at <- base::t(mat_a)
@@ -132,10 +148,29 @@ test_that("Crossprod works. ", {
   expect_equal(exp.gram, obs.gram)
 })
 
+# Sparse SVD with irlba ####
+test_that("SVD works", {
+  # 1. Define non lazy matrix
+  set.seed(123)
+  mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
+  scaled_a <- scale(mat_a)
+
+  # 2. Define LazyMatrix
+  lazy_a <- LazyMatrix(mat_a, scale = "sd",
+                    location = "mean")
+
+  # 3. Perform SVD
+  svd_norm <- base::svd(scaled_a)
+  svd_lazy <- svd(lazy_a)
+
+  # 4. Test
+  expect_equal(svd_norm$d[1:5], svd_lazy$d[1:5])
+})
+
 # === Algorithmic Tests === ####
 
 # Gradient descent ####
-test_that("Gradient descent algorithm works. ", {
+test_that("Gradient descent algorithm works", {
   set.seed(2121)
 
   # 1. Set up design matrix, non-lazy
@@ -233,7 +268,7 @@ test_that("Cholesky decomposition works", {
 })
 
 # Linear Regression ####
-test_that("Linear regression works. ", {
+test_that("Linear regression works", {
   # 1. Define non lazy matrix
   set.seed(123)
   mat_a <- matrix(rnorm(30), nrow=10, ncol=3)
@@ -256,4 +291,25 @@ test_that("Linear regression works. ", {
   expect_equal(mod_base$coefficients, mod_lazy$coefficients)
   expect_equal(mod_base$residuals, mod_lazy$residuals)
   expect_equal(mod_base$fitted.values, mod_lazy$fitted.values)
+})
+
+# PCA ####
+test_that("PCA works", {
+  # 1. Define non lazy matrix
+  set.seed(123)
+  mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
+
+  # 2. Define LazyMatrix
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+
+  # 3. Fit pca
+  k <- min(nrow(mat_a), ncol(mat_a)) - 1
+  pca_normal <- stats::prcomp(mat_a, scale=TRUE,
+                              center=TRUE, rank. = k)
+  pca_lazy <- prcomp(lazy_a)
+
+  # 4. Test with tolerance due to iterative nature of irlba
+  expect_equal(abs(pca_normal$rotation), abs(pca_lazy$rotation), tolerance = 1e-5)
+  expect_equal(pca_normal$sdev[1:9], pca_lazy$sdev[1:9], tolerance = 1e-5)
+  expect_equal(abs(pca_normal$x), abs(pca_lazy$x), tolerance = 1e-5)
 })
