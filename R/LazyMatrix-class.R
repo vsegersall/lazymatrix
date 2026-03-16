@@ -82,7 +82,7 @@ LazyMatrix <- function(data, scale = NULL,
 }
 
 # Validity checks on the arguments
-setValidity("LazyMatrix", function(object){
+setValidity("LazyMatrix", function(object) {
   # 1. check that data is a matrix: this is crucial for how the methods are
   ## implemented
   # 2. Check for location and scale
@@ -118,7 +118,7 @@ setGeneric("ncol")
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' ncol(lazy_a)
-setMethod("ncol", "LazyMatrix", function(x){
+setMethod("ncol", "LazyMatrix", function(x) {
   base::ncol(x@data)
 })
 
@@ -135,7 +135,7 @@ setGeneric("dim")
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' dim(lazy_a)
-setMethod("dim", "LazyMatrix", function(x){
+setMethod("dim", "LazyMatrix", function(x) {
   base::dim(x@data)
 })
 
@@ -168,7 +168,7 @@ setMethod("colnames", "LazyMatrix", function(x){
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' as.matrix(lazy_a)
-setMethod("as.matrix", "LazyMatrix", function(x){
+setMethod("as.matrix", "LazyMatrix", function(x) {
   # X_tilde = X S^-1 - C S^-1
   s <- 1/x@col_scales
   S_inv <- Matrix::Diagonal(length(x@col_scales), s)
@@ -199,6 +199,23 @@ setMethod("t", "LazyMatrix", function(x){
       col_locations = x@row_locations, row_locations = x@col_locations)
 })
 
+# colnames ####
+setGeneric("colnames")
+#' Retrieve or set the row or column names of a LazyMatrix object.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns A character vector of column names, or NULL if the matrix has no column names.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' colnames(lazy_a)
+setMethod("colnames", "LazyMatrix", function(x) {
+  base::colnames(x@data)
+})
+
 # matrix multiplication ####
 ## LazyMatrix & vector
 #' Matrix multiplication for LazyMatrix and vector
@@ -214,7 +231,7 @@ setMethod("t", "LazyMatrix", function(x){
 #' b <- c(1, 2, 3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' lazy_a %*% b
-setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
+setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y) {
   # X_tilde b = X S^-1 b - C S^-1 b
   s <- 1/x@col_scales
   c <- x@col_locations
@@ -235,8 +252,49 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y){
 #' b <- c(1, 2)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' b %*% lazy_a
-setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y){
-  t(crossprod(y, x))
+setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y) {
+  # t(x) %*%  y
+  # x is vector and y LazyMatrix
+  # b^t X_tilde = b^t X S^1 - b^t C S^1
+  s <- 1/y@col_scales
+  c <- y@col_locations
+  #b_tx <- Matrix::Matrix(0, nrow = 1,
+                         #ncol = ncol(y@data), sparse = FALSE)
+  b_tx <- base::matrix(0, nrow = 1, ncol = ncol(y@data))
+  sum_b <- base::sum(x)
+  for (j in seq_along(s)) {
+    b_tx[j] <- s[j] * sum(x * y@data[,j]) - s[j] * sum_b * c[j]
+  }
+  b_tx
+  # t(crossprod(y, x))
+})
+
+## LazyMatrix & matrix ####
+#' Matrix multiplication for LazyMatrix and matrix-object.
+#'
+#' @description Multiplies a LazyMatrix object by a matrix
+#'
+#' @param x A LazyMatrix object.
+#' @param y A matrix-object.
+#' @returns A matrix-object with the product of the lazy and non lazy object.
+#' @export
+#' @examples
+#' mat_a <- matrix(rep(1, 6), nrow = 2, ncol = 3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' set.seed(123)
+#' m <- matrix(rnorm(6), nrow = 3, ncol = 2)
+#' lazy_a %*% m
+setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
+  # X_tilde M = X S^-1 M - C S^-1 M
+  s <- 1/x@col_scales
+  c <- x@col_locations
+  first_term <- x@data %*% (s * y)
+  centering_row <- as.vector((c * s) %*% y)
+  centering_matrix <- base::matrix(centering_row,
+                             nrow = nrow(x),
+                             ncol = ncol(y),
+                             byrow = TRUE)
+  first_term - centering_matrix
 })
 
 # crossprod ####
@@ -255,7 +313,7 @@ setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y){
 #' lazy_a <- LazyMatrix(mat_a, scale="sd", location="mean")
 #' crossprod(lazy_a)
 #' crossprod(lazy_a, b)
-setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
+setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
   if (is.null(y)){
     # gram matrix
     # X_tilde^T X_tilde = S^-1 X^T X S^-1 - n S^-1 c c^T S^-1
@@ -282,4 +340,105 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL){
     }
     x_tb
   }
+})
+
+# svd ####
+#' @importFrom irlba irlba
+#' @title Singular Value decomposition for LazyMatrix.
+#'
+#' @description Performs lazy SVD using irlba for svd on sparse matrices.
+#' @param x A LazyMatrix object.
+#' @param nu number of left singular vectors to estimate (defaults to nv).
+#' @param nv  number of right singular vectors to estimate.
+#' @returns A list with entries:
+#'   \item{d}{max(nu, nv) approximate singular values}
+#'   \item{u}{nu approximate left singular vectors (only when right_only=FALSE)}
+#'   \item{v}{nv approximate right singular vectors}
+#'   \item{iter}{The number of Lanczos iterations carried out}
+#'   \item{mprod}{The total number of matrix vector products carried out}
+#' @export
+#'
+#' @examples
+#' set.seed(123)
+#' mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' lazy_a <-LazyMatrix(mat_a, scale = "sd", location = "mean")
+#' S <- svd(lazy_a)
+#' # Receive singular values with
+#' S$d
+setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
+  if (missing(nu)) nu <- 5
+  if (missing(nv)) nv <- 5
+
+  n <- nrow(x)
+  p <- ncol(x)
+
+  # Remove 1 dimension to be compatible with irlba
+  max_k <- min(n, p) - 1
+  nu <- min(nu, max_k)
+  nv <- min(nv, max_k)
+
+  # Adapter through S4 dispatch
+  mult_func <- function(x, y) {
+    result <- x %*% y
+    as.vector(result) # Create correct type for irlba
+  }
+  irlba::irlba(x, nu = nu, nv = nv, mult = mult_func)
+})
+
+# prcomp ####
+#' Performs a principal component analysis on the LazyMatrix object using irlba:s sparse svd.
+#'
+#' @param x a LazyMatrix object.
+#' @param retx a logical value indicating whether the rotated variables should be returned.
+#' @param tol a value indicating the magnitude below which components should be omitted. (Components are omitted if their standard deviations are less than or equal to tol times the standard deviation of the first component.) With the default null setting, no components are omitted (unless rank. is specified less than min(dim(x)).). Other settings for tol could be tol = 0 or tol = sqrt(.Machine$double.eps), which would omit essentially constant components.
+#' @param rank. optionally, a number specifying the maximal rank, i.e., maximal number of principal components to be used. Can be set as alternative or in addition to tol, useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
+#' @param ... Additional arguments passed to underlying methods.
+
+#' @return A list of class \code{\"prcomp\"} containing:
+#'   \item{sdev}{The standard deviations of the principal components (i.e., the square roots of the eigenvalues of the covariance/correlation matrix, calculated using the singular values of the data matrix).}
+#'   \item{rotation}{The matrix of variable loadings (columns are eigenvectors).}
+#'   \item{x}{If \code{retx} is TRUE, the value of the rotated data (centered and optionally scaled, multiplied by the rotation matrix).}
+#'   \item{center}{The centering used, or \code{FALSE}.}
+#'   \item{scale}{The scaling applied to the data, or \code{FALSE}}
+#' @export
+#'
+#' @examples
+#' set.seed(123)
+#' mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' pca_lazy <- prcomp(lazy_a)
+setMethod("prcomp", "LazyMatrix", function(x, retx = TRUE, tol = NULL,
+                                           rank. = NULL, ...) {
+  cen <- x@col_locations
+  sc <- x@col_scales
+  if (any(sc == 0))
+    stop("cannot rescale a constant/zero column to unit variance")
+  n <- nrow(x)
+  p <- ncol(x)
+  k <- if (!is.null(rank.)) {
+    stopifnot(length(rank.) == 1, is.finite(rank.), as.integer(rank.) >
+                0)
+    min(as.integer(rank.), n, p)
+  }
+  else min(n, p)
+  k <- min(k, min(n, p) - 1)
+  s <- svd(x, nu = 0, nv= k)
+  j <- base::seq_len(k)
+  s$d <- s$d / base::sqrt(max(1, n-1))
+  if (!is.null(tol)) {
+    rank <- sum(s$d > (s$d[1L] * tol))
+    if (rank < k) {
+      j <- seq_len(k <- rank)
+      s$v <- s$v[, j, drop = FALSE]
+    }
+  }
+  center = if(length(cen) > 0) cen else FALSE
+  scale = if(length(sc) > 0) sc else FALSE
+  dimnames(s$v) <- list(colnames(x), paste0("PC", j))
+  r <- list(sdev = s$d, rotation = s$v, center = center,
+            scale = scale)
+  if (retx)
+    r$x <- x %*% s$v
+  base::class(r) <- "prcomp"
+  r
 })
