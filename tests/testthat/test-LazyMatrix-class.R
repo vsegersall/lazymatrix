@@ -70,10 +70,10 @@ test_that("Class definition works", {
   expect_equal(expected.row_scale, observed.row_scale.2args)
 
   # 6. Check that empty LazyMatrix has numeric(0) for all params
-  expect_equal(length(a@col_scales), 0)
-  expect_equal(length(a@row_scales), 0)
-  expect_equal(length(a@col_locations), 0)
-  expect_equal(length(a@row_locations), 0)
+  expect_length(a@col_scales, 0)
+  expect_length(a@row_scales, 0)
+  expect_length(a@col_locations, 0)
+  expect_length(a@row_locations, 0)
 })
 
 # Matrix multiplication ####
@@ -128,7 +128,7 @@ test_that("Crossprod works", {
   b <- c(1, -1)
   expected.means <- Matrix::colMeans(mat_a)
   expected.locations <- base::matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in 1:nrow(expected.locations)) {
+  for (i in seq_len(nrow(expected.locations))) {
     expected.locations[i, ] <- expected.means
   }
   expected.sd <- base::apply(mat_a, 2, sd)
@@ -180,7 +180,7 @@ test_that("Gradient descent algorithm works", {
   mat_at <- base::t(mat_a)
   expected.means <- Matrix::colMeans(mat_a)
   expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in 1:nrow(expected.locations)) {
+  for (i in seq_len(nrow(expected.locations))) {
     expected.locations[i, ] <- expected.means
   }
   expected.sd <- base::apply(mat_a, 2, sd)
@@ -233,7 +233,7 @@ test_that("Cholesky decomposition works", {
   b <- c(1, 2, 3)
   expected.means <- Matrix::colMeans(mat_a)
   expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in 1:nrow(expected.locations)) {
+  for (i in seq_len(nrow(expected.locations))) {
     expected.locations[i, ] <- expected.means
   }
   expected.sd <- base::apply(mat_a, 2, sd)
@@ -277,7 +277,7 @@ test_that("Linear regression works", {
   mat_a <- matrix(rnorm(30), nrow = 10, ncol = 3)
   expected.means <- Matrix::colMeans(mat_a)
   expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in 1:nrow(expected.locations)) {
+  for (i in seq_len(nrow(expected.locations))) {
     expected.locations[i, ] <- expected.means
   }
   expected.sd <- base::apply(mat_a, 2, sd)
