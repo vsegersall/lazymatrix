@@ -349,7 +349,7 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
     c <- x@col_locations
     x_tb <- Matrix::Matrix(0, nrow = ncol(x@data), ncol = 1, sparse = FALSE)
     sum_y <- base::sum(y)
-    for (j in 1:ncol(x@data)) {
+    for (j in seq_len(ncol(x@data))) {
       x_tb[j] <- s[j] * base::sum(x@data[, j] * y) - s[j] * c[j] * sum_y
     }
     x_tb
@@ -449,12 +449,13 @@ setMethod(
     if (!is.null(tol)) {
       rank <- sum(s$d > (s$d[1L] * tol))
       if (rank < k) {
-        j <- seq_len(k <- rank)
+        k <- rank
+        j <- seq_len(k)
         s$v <- s$v[, j, drop = FALSE]
       }
     }
-    center = if (length(cen) > 0) cen else FALSE
-    scale = if (length(sc) > 0) sc else FALSE
+    center <- if (length(cen) > 0) cen else FALSE
+    scale <- if (length(sc) > 0) sc else FALSE
     dimnames(s$v) <- list(colnames(x), paste0("PC", j))
     r <- list(sdev = s$d, rotation = s$v, center = center, scale = scale)
     if (retx) {
