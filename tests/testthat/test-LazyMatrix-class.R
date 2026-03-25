@@ -1,29 +1,34 @@
 # === Helper functions === ####
-gradient_descent_helper <- function(x, y, w_init, b_init,
-                                    learning_rate, n_epochs){
+gradient_descent_helper <- function(
+  x,
+  y,
+  w_init,
+  b_init,
+  learning_rate,
+  n_epochs
+) {
   w <- w_init
   b <- b_init
   n <- nrow(x)
-  for (epoch in 1:n_epochs){
+  for (epoch in 1:n_epochs) {
     y_pred <- base::as.vector(x %*% w) + b
     error <- y_pred - y
-    w <- w - (learning_rate * crossprod(x, error))/n
-    b <- b - (learning_rate * sum(error))/n
+    w <- w - (learning_rate * crossprod(x, error)) / n
+    b <- b - (learning_rate * sum(error)) / n
   }
-  return(list(w=w, b=b))
+  return(list(w = w, b = b))
 }
 
-cholesky_decomp <- function(A){
+cholesky_decomp <- function(A) {
   L <- Matrix::chol(A)
   M <- t(L)
   A_new <- M %*% L
-  return(base::list(A=A,  "upper" = L,
-              "lower"=M))
+  return(base::list(A = A, "upper" = L, "lower" = M))
 }
 
-linear_regression <- function(x, y){
+linear_regression <- function(x, y) {
   x <- as.matrix(x)
-  return(stats::lm(y~x))
+  return(stats::lm(y ~ x))
 }
 
 # === Function Tests === ####
@@ -74,10 +79,8 @@ test_that("Class definition works", {
 # Matrix multiplication ####
 test_that("Lazy multiplication computation works", {
   # 1. Define non-lazy object
-  mat_a <- base::matrix(c(1, 2, 3,
-                          1, 2, 3), nrow=2, ncol=3)
+  mat_a <- base::matrix(c(1, 2, 3, 1, 2, 3), nrow = 2, ncol = 3)
   scaled_a <- scale(mat_a)
-
 
   # 2. Define lazy object
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
@@ -86,8 +89,7 @@ test_that("Lazy multiplication computation works", {
   b <- c(1, 2, 3)
   c <- c(1, 2)
   set.seed(123)
-  m <- base::matrix(rnorm(6), nrow=3,
-                    ncol=2)
+  m <- base::matrix(rnorm(6), nrow = 3, ncol = 2)
 
   # 4. Test: matrix %*% vector
   expected.product <- scaled_a %*% b
@@ -108,8 +110,7 @@ test_that("Lazy multiplication computation works", {
 
 # Transpose ####
 test_that("Lazy tranpose works", {
-  mat.a <- base::matrix(c(1, 2, 3,
-                          1, 2, 3), nrow=2, ncol=3)
+  mat.a <- base::matrix(c(1, 2, 3, 1, 2, 3), nrow = 2, ncol = 3)
   mat.at <- base::t(mat.a)
   lazy.a <- LazyMatrix(mat.a, "sd", "mean")
   lazy.at <- t(lazy.a)
@@ -119,23 +120,20 @@ test_that("Lazy tranpose works", {
 
 # Crossproduct ####
 test_that("Crossprod works", {
-  mat_a <- base::matrix(c(1, 2, 3,
-                          1, 2, 3), nrow=2, ncol=3)
+  mat_a <- base::matrix(c(1, 2, 3, 1, 2, 3), nrow = 2, ncol = 3)
   mat_at <- base::t(mat_a)
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 
   # crossprod() with vector
   b <- c(1, -1)
   expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- base::matrix(0, nrow=nrow(mat_a),
-                               ncol=ncol(mat_a))
-  for (i in 1:nrow(expected.locations)){
-    expected.locations[i,] <- expected.means
+  expected.locations <- base::matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
+  for (i in 1:nrow(expected.locations)) {
+    expected.locations[i, ] <- expected.means
   }
   expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1/expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
-                                x = expected.scale)
+  expected.scale <- 1 / expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
 
   exp.outcome <- t(scale.mat) %*% (mat_at - t(expected.locations)) %*% b
   #exp.outcome <- as.vector(exp.outcome)
@@ -143,7 +141,10 @@ test_that("Crossprod works", {
   expect_equal(exp.outcome, obs.outcome)
 
   # gram matrix
-  exp.gram <- t(scale.mat) %*% (mat_at - t(expected.locations)) %*% (mat_a - expected.locations) %*% scale.mat
+  exp.gram <- t(scale.mat) %*%
+    (mat_at - t(expected.locations)) %*%
+    (mat_a - expected.locations) %*%
+    scale.mat
   obs.gram <- crossprod(lazy_a)
   expect_equal(exp.gram, obs.gram)
 })
@@ -152,12 +153,11 @@ test_that("Crossprod works", {
 test_that("SVD works", {
   # 1. Define non lazy matrix
   set.seed(123)
-  mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
+  mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
   scaled_a <- scale(mat_a)
 
   # 2. Define LazyMatrix
-  lazy_a <- LazyMatrix(mat_a, scale = "sd",
-                    location = "mean")
+  lazy_a <- LazyMatrix(mat_a, scale = "sd", location = "mean")
 
   # 3. Perform SVD
   svd_norm <- base::svd(scaled_a)
@@ -176,19 +176,16 @@ test_that("Gradient descent algorithm works", {
   # 1. Set up design matrix, non-lazy
   n <- 50
   p <- 5
-  mat_a <- base::matrix(stats::rnorm(n*p), nrow = n,
-                  ncol = p)
+  mat_a <- base::matrix(stats::rnorm(n * p), nrow = n, ncol = p)
   mat_at <- base::t(mat_a)
   expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- matrix(0, nrow=nrow(mat_a),
-                               ncol=ncol(mat_a))
-  for (i in 1:nrow(expected.locations)){
-    expected.locations[i,] <- expected.means
+  expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
+  for (i in 1:nrow(expected.locations)) {
+    expected.locations[i, ] <- expected.means
   }
   expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1/expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
-                                x = expected.scale)
+  expected.scale <- 1 / expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
   scaled_a <- (mat_a - expected.locations) %*% scale.mat
 
   # 2. Set up lazy design matrix
@@ -203,14 +200,22 @@ test_that("Gradient descent algorithm works", {
   n_epochs <- 10
 
   # 4. Run gradient descent, lazy and not lazy
-  pars_nonlazy <- gradient_descent_helper(x=scaled_a, y=y_true,
-                                          w_init=w_init, b_init=b_init,
-                                          learning_rate=learning_rate,
-                                          n_epochs=n_epochs)
-  pars_lazy <- gradient_descent_helper(x=lazy_a, y=y_true,
-                                          w_init=w_init, b_init=b_init,
-                                          learning_rate=learning_rate,
-                                          n_epochs=n_epochs)
+  pars_nonlazy <- gradient_descent_helper(
+    x = scaled_a,
+    y = y_true,
+    w_init = w_init,
+    b_init = b_init,
+    learning_rate = learning_rate,
+    n_epochs = n_epochs
+  )
+  pars_lazy <- gradient_descent_helper(
+    x = lazy_a,
+    y = y_true,
+    w_init = w_init,
+    b_init = b_init,
+    learning_rate = learning_rate,
+    n_epochs = n_epochs
+  )
   preds_nonlazy <- scaled_a %*% pars_nonlazy$w + pars_nonlazy$b
   preds_lazy <- lazy_a %*% pars_lazy$w + pars_lazy$b
 
@@ -224,18 +229,16 @@ test_that("Gradient descent algorithm works", {
 test_that("Cholesky decomposition works", {
   # 1. Define non lazy matrix
   set.seed(123)
-  mat_a <- matrix(rnorm(30), nrow=10, ncol=3)  # 10×3 matris
+  mat_a <- matrix(rnorm(30), nrow = 10, ncol = 3) # 10×3 matris
   b <- c(1, 2, 3)
   expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- matrix(0, nrow=nrow(mat_a),
-                               ncol=ncol(mat_a))
-  for (i in 1:nrow(expected.locations)){
-    expected.locations[i,] <- expected.means
+  expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
+  for (i in 1:nrow(expected.locations)) {
+    expected.locations[i, ] <- expected.means
   }
   expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1/expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
-                                x = expected.scale)
+  expected.scale <- 1 / expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
   scaled_a <- (mat_a - expected.locations) %*% scale.mat
 
   # 2. Define lazy object
@@ -271,17 +274,15 @@ test_that("Cholesky decomposition works", {
 test_that("Linear regression works", {
   # 1. Define non lazy matrix
   set.seed(123)
-  mat_a <- matrix(rnorm(30), nrow=10, ncol=3)
+  mat_a <- matrix(rnorm(30), nrow = 10, ncol = 3)
   expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- matrix(0, nrow=nrow(mat_a),
-                               ncol=ncol(mat_a))
-  for (i in 1:nrow(expected.locations)){
-    expected.locations[i,] <- expected.means
+  expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
+  for (i in 1:nrow(expected.locations)) {
+    expected.locations[i, ] <- expected.means
   }
   expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1/expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale),
-                                x = expected.scale)
+  expected.scale <- 1 / expected.sd
+  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
   scaled_a <- (mat_a - expected.locations) %*% scale.mat
 
   # 2. Define lazy object
@@ -306,19 +307,22 @@ test_that("Linear regression works", {
 test_that("PCA works", {
   # 1. Define non lazy matrix
   set.seed(123)
-  mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
+  mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
 
   # 2. Define LazyMatrix
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 
   # 3. Fit pca
   k <- min(nrow(mat_a), ncol(mat_a)) - 1
-  pca_normal <- stats::prcomp(mat_a, scale=TRUE,
-                              center=TRUE, rank. = k)
+  pca_normal <- stats::prcomp(mat_a, scale = TRUE, center = TRUE, rank. = k)
   pca_lazy <- prcomp(lazy_a)
 
   # 4. Test with tolerance due to iterative nature of irlba
-  expect_equal(abs(pca_normal$rotation), abs(pca_lazy$rotation), tolerance = 1e-5)
+  expect_equal(
+    abs(pca_normal$rotation),
+    abs(pca_lazy$rotation),
+    tolerance = 1e-5
+  )
   expect_equal(pca_normal$sdev[1:9], pca_lazy$sdev[1:9], tolerance = 1e-5)
   expect_equal(abs(pca_normal$x), abs(pca_lazy$x), tolerance = 1e-5)
 })
