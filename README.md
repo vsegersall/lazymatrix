@@ -5,9 +5,16 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/vsegersall/lazymatrix/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vsegersall/lazymatrix/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The goal of lazymatrix is to …
+`lazymatrix` provides a framework for working with transformed sparse
+data matrices using [lazy
+evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation). This
+approach is particularly useful for handling large sparse matrices where
+transformations (e.g., centering and scaling) would otherwise result in
+dense matrices, consuming significant memory and computational
+resources.
 
 ## Installation
 
@@ -25,29 +32,47 @@ This is a basic example which shows you how to solve a common problem:
 
 ``` r
 library(lazymatrix)
-## basic example code
+set.seed(123)
+sparse_matrix <- Matrix::Matrix(0, 5, 3)
+sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+b <- rnorm(3)
+lazy_matrix <- LazyMatrix(sparse_matrix, scale = "sd", location = "mean")
+print(lazy_matrix)
+#> An object of class "LazyMatrix"
+#> Slot "data":
+#> 5 x 3 sparse Matrix of class "dgCMatrix"
+#>                                      
+#> [1,]  .         1.55870831  .        
+#> [2,]  .         .           .        
+#> [3,]  .         .           .        
+#> [4,] -0.5604756 0.07050839 -0.2301775
+#> [5,]  .         0.12928774  .        
+#> 
+#> Slot "col_scales":
+#> [1] 0.2506523 0.6769030 0.1029385
+#> 
+#> Slot "row_scales":
+#> [1] 0.89992066 0.00000000 0.00000000 0.31560781 0.07464431
+#> 
+#> Slot "col_locations":
+#> [1] -0.1120951  0.3517009 -0.0460355
+#> 
+#> Slot "row_locations":
+#> [1]  0.51956944  0.00000000  0.00000000 -0.24004825  0.04309591
+lazy_matrix %*% b
+#> 5 x 1 Matrix of class "dgeMatrix"
+#>           [,1]
+#> [1,] -1.751397
+#> [2,]  2.225999
+#> [3,]  2.225999
+#> [4,] -4.596694
+#> [5,]  1.896092
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+## Contribution
 
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" alt="" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+As this is part of a university project and the fact that the project
+does not have a stable version yet, the project is closed for
+contributions. We are however happy to discuss ideas for the future so
+feel free to contact the authors or make an issue for functionalities
+you would like to see within `lazymatrix`.
