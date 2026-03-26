@@ -26,11 +26,6 @@ cholesky_decomp <- function(A) {
   return(base::list(A = A, "upper" = L, "lower" = M))
 }
 
-linear_regression <- function(x, y) {
-  x <- as.matrix(x)
-  return(stats::lm(y ~ x))
-}
-
 # === Function Tests === ####
 
 # Class definition ####
@@ -157,14 +152,13 @@ test_that("SVD works", {
   scaled_a <- scale(mat_a)
 
   # 2. Define LazyMatrix
-  lazy_a <- LazyMatrix(mat_a, scale = "sd",
-                    location = "mean")
+  lazy_a <- LazyMatrix(mat_a, scale = "sd", location = "mean")
   n <- nrow(lazy_a)
   p <- ncol(lazy_a)
 
   # 3. Perform SVD
   svd_norm <- base::svd(scaled_a)
-  svd_lazy <- svd(lazy_a, nu=n, nv=p)
+  svd_lazy <- svd(lazy_a, nu = n, nv = p)
 
   # 4. Test
   expect_equal(svd_norm$d[1:5], svd_lazy$d[1:5])
@@ -310,7 +304,7 @@ test_that("Cholesky decomposition works", {
 test_that("Linear regression works", {
   # 1. Define non lazy matrix
   set.seed(123)
-  mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
+  mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
   scaled_a <- base::scale(mat_a)
 
   # 2. Define response y
@@ -325,8 +319,7 @@ test_that("Linear regression works", {
   beta_lazy <- lsqr(lazy_a, y)
 
   # 6. Tests
-  expect_equal(as.vector(beta_lazy), as.vector(base_coeff),
-               tolerance = 1e-6)
+  expect_equal(as.vector(beta_lazy), as.vector(base_coeff), tolerance = 1e-6)
 })
 
 # PCA ####
