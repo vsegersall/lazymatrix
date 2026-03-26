@@ -14,21 +14,22 @@
 #' @examples
 #' mat <- matrix(1:6, nrow=2, ncol=3)
 #' obj <- LazyMatrix(mat, "sd", "mean")
-setClass("LazyMatrix",
-         slots = c(
-           data = "ANY",
-           col_scales = "numeric",
-           row_scales = "numeric",
-           col_locations = "numeric",
-           row_locations = "numeric"
-         ),
-         prototype = list(
-           data = matrix(0),
-           col_scales = numeric(0),
-           row_scales = numeric(0),
-           col_locations = numeric(0),
-           row_locations = numeric(0)
-         )
+setClass(
+  "LazyMatrix",
+  slots = c(
+    data = "ANY",
+    col_scales = "numeric",
+    row_scales = "numeric",
+    col_locations = "numeric",
+    row_locations = "numeric"
+  ),
+  prototype = list(
+    data = matrix(0),
+    col_scales = numeric(0),
+    row_scales = numeric(0),
+    col_locations = numeric(0),
+    row_locations = numeric(0)
+  )
 )
 # Helper ####
 
@@ -45,40 +46,44 @@ setClass("LazyMatrix",
 #' mat_a <- matrix(1:6, nrow=3, ncol=2)
 #' lazy_a <- LazyMatrix(mat_a, scale="sd", location="mean")
 #' lazy_a
-LazyMatrix <- function(data, scale = NULL,
-                       location = NULL){
+LazyMatrix <- function(data, scale = NULL, location = NULL) {
   # code for constructing helper
-  col_scales <- if(is.null(scale)){
+  col_scales <- if (is.null(scale)) {
     numeric(0)
-  } else if (scale == "sd"){
+  } else if (scale == "sd") {
     base::apply(data, 2, stats::sd)
-  }else {
+  } else {
     numeric(0)
   }
-  row_scales <- if(is.null(scale)){
+  row_scales <- if (is.null(scale)) {
     numeric(0)
-  } else if (scale == "sd"){
+  } else if (scale == "sd") {
     base::apply(data, 1, stats::sd)
-  }else {
+  } else {
     numeric(0)
   }
-  col_locations <- if(is.null(location)){
+  col_locations <- if (is.null(location)) {
     numeric(0)
-  } else if (location == "mean"){
+  } else if (location == "mean") {
     Matrix::colMeans(data)
   } else {
     numeric(0)
   }
-  row_locations <- if(is.null(location)){
+  row_locations <- if (is.null(location)) {
     numeric(0)
-  } else if (location == "mean"){
+  } else if (location == "mean") {
     Matrix::rowMeans(data)
   } else {
     numeric(0)
   }
-  new("LazyMatrix", data = data,
-      col_scales = col_scales, row_scales = row_scales,
-      col_locations = col_locations, row_locations = row_locations)
+  new(
+    "LazyMatrix",
+    data = data,
+    col_scales = col_scales,
+    row_scales = row_scales,
+    col_locations = col_locations,
+    row_locations = row_locations
+  )
 }
 
 # Validity checks on the arguments
@@ -101,7 +106,7 @@ setGeneric("nrow")
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' nrow(lazy_a)
-setMethod("nrow", "LazyMatrix", function(x){
+setMethod("nrow", "LazyMatrix", function(x) {
   base::nrow(x@data)
 })
 
@@ -152,7 +157,7 @@ setGeneric("colnames")
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' colnames(lazy_a)
-setMethod("colnames", "LazyMatrix", function(x){
+setMethod("colnames", "LazyMatrix", function(x) {
   base::colnames(x@data)
 })
 
@@ -170,12 +175,16 @@ setMethod("colnames", "LazyMatrix", function(x){
 #' as.matrix(lazy_a)
 setMethod("as.matrix", "LazyMatrix", function(x) {
   # X_tilde = X S^-1 - C S^-1
-  s <- 1/x@col_scales
+  s <- 1 / x@col_scales
   S_inv <- Matrix::Diagonal(length(x@col_scales), s)
   c <- x@col_locations
   first_term <- x@data %*% S_inv
-  second_term <- Matrix::Matrix(c * s, nrow=nrow(first_term),
-                                ncol=length(s), byrow=TRUE)
+  second_term <- Matrix::Matrix(
+    c * s,
+    nrow = nrow(first_term),
+    ncol = length(s),
+    byrow = TRUE
+  )
   result <- first_term - second_term
   base::as.matrix(result)
 })
@@ -192,11 +201,16 @@ setMethod("as.matrix", "LazyMatrix", function(x) {
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' lazy_t <- t(lazy_a)
-setMethod("t", "LazyMatrix", function(x){
+setMethod("t", "LazyMatrix", function(x) {
   x_transpose <- t(x@data)
-  new("LazyMatrix", data = x_transpose,
-      col_scales = x@row_scales, row_scales = x@col_scales,
-      col_locations = x@row_locations, row_locations = x@col_locations)
+  new(
+    "LazyMatrix",
+    data = x_transpose,
+    col_scales = x@row_scales,
+    row_scales = x@col_scales,
+    col_locations = x@row_locations,
+    row_locations = x@col_locations
+  )
 })
 
 # colnames ####
@@ -233,7 +247,7 @@ setMethod("colnames", "LazyMatrix", function(x) {
 #' lazy_a %*% b
 setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y) {
   # X_tilde b = X S^-1 b - C S^-1 b
-  s <- 1/x@col_scales
+  s <- 1 / x@col_scales
   c <- x@col_locations
   x@data %*% (s * y) - sum(c * s * y)
 })
@@ -256,14 +270,14 @@ setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y) {
   # t(x) %*%  y
   # x is vector and y LazyMatrix
   # b^t X_tilde = b^t X S^1 - b^t C S^1
-  s <- 1/y@col_scales
+  s <- 1 / y@col_scales
   c <- y@col_locations
   #b_tx <- Matrix::Matrix(0, nrow = 1,
-                         #ncol = ncol(y@data), sparse = FALSE)
+  #ncol = ncol(y@data), sparse = FALSE)
   b_tx <- base::matrix(0, nrow = 1, ncol = ncol(y@data))
   sum_b <- base::sum(x)
   for (j in seq_along(s)) {
-    b_tx[j] <- s[j] * sum(x * y@data[,j]) - s[j] * sum_b * c[j]
+    b_tx[j] <- s[j] * sum(x * y@data[, j]) - s[j] * sum_b * c[j]
   }
   b_tx
   # t(crossprod(y, x))
@@ -286,14 +300,16 @@ setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y) {
 #' lazy_a %*% m
 setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
   # X_tilde M = X S^-1 M - C S^-1 M
-  s <- 1/x@col_scales
+  s <- 1 / x@col_scales
   c <- x@col_locations
   first_term <- x@data %*% (s * y)
   centering_row <- as.vector((c * s) %*% y)
-  centering_matrix <- base::matrix(centering_row,
-                             nrow = nrow(x),
-                             ncol = ncol(y),
-                             byrow = TRUE)
+  centering_matrix <- base::matrix(
+    centering_row,
+    nrow = nrow(x),
+    ncol = ncol(y),
+    byrow = TRUE
+  )
   first_term - centering_matrix
 })
 
@@ -314,10 +330,10 @@ setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
 #' crossprod(lazy_a)
 #' crossprod(lazy_a, b)
 setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
-  if (is.null(y)){
+  if (is.null(y)) {
     # gram matrix
     # X_tilde^T X_tilde = S^-1 X^T X S^-1 - n S^-1 c c^T S^-1
-    s <- 1/x@col_scales
+    s <- 1 / x@col_scales
     S_inv <- Matrix::Diagonal(length(x@col_scales), s)
     c <- x@col_locations
     n <- nrow(x@data)
@@ -326,17 +342,15 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
     cc_t <- c %*% t(c)
     second_term <- n * S_inv %*% cc_t %*% S_inv
     first_term - second_term
-  }
-  else{
+  } else {
     # t(X) %*% y
     # X_tilde^T b = S^1 X^T b - S^1 C^T b
-    s <- 1/x@col_scales
+    s <- 1 / x@col_scales
     c <- x@col_locations
-    x_tb <- Matrix::Matrix(0, nrow = ncol(x@data),
-                           ncol = 1, sparse = FALSE)
+    x_tb <- Matrix::Matrix(0, nrow = ncol(x@data), ncol = 1, sparse = FALSE)
     sum_y <- base::sum(y)
-    for (j in 1:ncol(x@data)){
-      x_tb[j] <- s[j]*base::sum(x@data[,j] * y) - s[j]*c[j]*sum_y
+    for (j in seq_len(ncol(x@data))) {
+      x_tb[j] <- s[j] * base::sum(x@data[, j] * y) - s[j] * c[j] * sum_y
     }
     x_tb
   }
@@ -366,8 +380,12 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
 #' # Receive singular values with
 #' S$d
 setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
-  if (missing(nu)) nu <- 5
-  if (missing(nv)) nv <- 5
+  if (missing(nu)) {
+    nu <- 5
+  }
+  if (missing(nv)) {
+    nv <- 5
+  }
 
   n <- nrow(x)
   p <- ncol(x)
@@ -407,45 +425,50 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
 #' mat_a <- matrix(rnorm(500), nrow=50, ncol=10)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' pca_lazy <- prcomp(lazy_a)
-setMethod("prcomp", "LazyMatrix", function(x, retx = TRUE, tol = NULL,
-                                           rank. = NULL, ...) {
-  cen <- x@col_locations
-  sc <- x@col_scales
-  if (any(sc == 0))
-    stop("cannot rescale a constant/zero column to unit variance")
-  n <- nrow(x)
-  p <- ncol(x)
-  k <- if (!is.null(rank.)) {
-    stopifnot(length(rank.) == 1, is.finite(rank.), as.integer(rank.) >
-                0)
-    min(as.integer(rank.), n, p)
-  }
-  else min(n, p)
-  k <- min(k, min(n, p) - 1)
-  s <- svd(x, nu = 0, nv= k)
-  j <- base::seq_len(k)
-  s$d <- s$d / base::sqrt(max(1, n-1))
-  if (!is.null(tol)) {
-    rank <- sum(s$d > (s$d[1L] * tol))
-    if (rank < k) {
-      j <- seq_len(k <- rank)
-      s$v <- s$v[, j, drop = FALSE]
+setMethod(
+  "prcomp",
+  "LazyMatrix",
+  function(x, retx = TRUE, tol = NULL, rank. = NULL, ...) {
+    cen <- x@col_locations
+    sc <- x@col_scales
+    if (any(sc == 0)) {
+      stop("cannot rescale a constant/zero column to unit variance")
     }
+    n <- nrow(x)
+    p <- ncol(x)
+    k <- if (!is.null(rank.)) {
+      stopifnot(length(rank.) == 1, is.finite(rank.), as.integer(rank.) > 0)
+      min(as.integer(rank.), n, p)
+    } else {
+      min(n, p)
+    }
+    k <- min(k, min(n, p) - 1)
+    s <- svd(x, nu = 0, nv = k)
+    j <- base::seq_len(k)
+    s$d <- s$d / base::sqrt(max(1, n - 1))
+    if (!is.null(tol)) {
+      rank <- sum(s$d > (s$d[1L] * tol))
+      if (rank < k) {
+        k <- rank
+        j <- seq_len(k)
+        s$v <- s$v[, j, drop = FALSE]
+      }
+    }
+    center <- if (length(cen) > 0) cen else FALSE
+    scale <- if (length(sc) > 0) sc else FALSE
+    dimnames(s$v) <- list(colnames(x), paste0("PC", j))
+    r <- list(sdev = s$d, rotation = s$v, center = center, scale = scale)
+    if (retx) {
+      r$x <- x %*% s$v
+    }
+    base::class(r) <- "prcomp"
+    r
   }
-  center = if(length(cen) > 0) cen else FALSE
-  scale = if(length(sc) > 0) sc else FALSE
-  dimnames(s$v) <- list(colnames(x), paste0("PC", j))
-  r <- list(sdev = s$d, rotation = s$v, center = center,
-            scale = scale)
-  if (retx)
-    r$x <- x %*% s$v
-  base::class(r) <- "prcomp"
-  r
-})
+)
 
 # LSQR ####
 setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
-setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y){
+setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {
   A <- x
   b <- y
   convergence <- FALSE
@@ -458,14 +481,14 @@ setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y){
   u_1 <- b / beta_1
   A_tu_1 <- crossprod(A, u_1)
   alpha_1 <- sqrt(sum(A_tu_1^2))
-  v_1 <- A_tu_1/alpha_1
+  v_1 <- A_tu_1 / alpha_1
   w_1 <- v_1
   x_0 <- rep(0, ncol(A))
   phi_1_bar <- beta_1
   rho_1_bar <- alpha_1
 
   # 2. For i=1,2,... 3 repeat steps 3-6
-  while (!convergence && iter < max_iter){
+  while (!convergence && iter < max_iter) {
     iter <- iter + 1
 
     # 3. Continue the bidiagonalization
@@ -486,8 +509,8 @@ setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y){
     phi_2_bar <- s_1 * phi_1_bar
 
     # 5. Update x, w
-    x_1 <- x_0 + phi_1/rho_1 * w_1
-    w_2 <- v_2 - theta_2/rho_1 * w_1
+    x_1 <- x_0 + phi_1 / rho_1 * w_1
+    w_2 <- v_2 - theta_2 / rho_1 * w_1
 
     # reset the loop-variables
     beta_1 <- beta_2
