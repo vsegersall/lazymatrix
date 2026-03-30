@@ -466,6 +466,25 @@ setMethod(
   }
 )
 
+# norm ####
+setGeneric("norm", function(x) standardGeneric("norm"))
+setMethod("norm", "LazyMatrix", function(x) {
+  s <- 1 / x@col_scales
+  c <- x@col_locations
+  x_i <- Matrix::colSums(x@data)
+  x_i_squared <- Matrix::colSums(x@data^2)
+  n <- nrow(x)
+  sum <- 0
+  norm_squared <-
+    for (i in seq(s)) {
+      sum <- sum +
+        s[i]^2 * x_i_squared[i] +
+        -1 * s[i]^2 * 2 * c[i] * x_i[i] +
+        s[i]^2 * n * c[i]^2
+    }
+  sqrt(sum)
+})
+
 # LSQR ####
 setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
 setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {

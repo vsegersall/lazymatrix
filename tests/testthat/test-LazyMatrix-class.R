@@ -164,6 +164,23 @@ test_that("SVD works", {
   expect_equal(svd_norm$d[1:5], svd_lazy$d[1:5])
   expect_equal(dim(svd_lazy$u[1:9]), dim(svd_norm$u[1:9]))
 })
+# Frobenius norm ####
+test_that("Frobenius norm works", {
+  # 1. Set test matrix
+  set.seed(123)
+  sparse_matrix <- Matrix::Matrix(0, 5, 3)
+  sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+
+  # 2. Set lazy object
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+
+  # 3. Compute norm
+  frob_norm <- base::norm(scale(sparse_matrix), "F")
+  lazy_frob <- norm(lazy_s)
+
+  # 4. Test
+  expect_equal(lazy_frob, frob_norm)
+})
 
 # === Type Tests === ####
 # sparseMatrix ####
