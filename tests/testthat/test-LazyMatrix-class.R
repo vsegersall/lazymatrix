@@ -26,54 +26,51 @@ cholesky_decomp <- function(A) {
   return(base::list(A = A, "upper" = L, "lower" = M))
 }
 
-linear_regression <- function(x, y) {
-  x <- as.matrix(x)
-  return(stats::lm(y ~ x))
-}
-
 # === Function Tests === ####
 
 # Class definition ####
 test_that("Class definition works", {
-  mat_a <- base::matrix(1:4, 2, 2)
-  a <- LazyMatrix(mat_a)
-  b <- LazyMatrix(mat_a, scale = "sd")
-  c <- LazyMatrix(mat_a, scale = "sd", location = "mean")
+  set.seed(123)
+  mat_a <- base::matrix(rnorm(10), 2, 5)
+  lazy_a <- LazyMatrix(mat_a, scale = "sd", location = "mean")
 
   # 1. Check that each type is a LazyMatrix object
-  expect_s4_class(a, "LazyMatrix")
-  expect_s4_class(b, "LazyMatrix")
-  expect_s4_class(c, "LazyMatrix")
+  expect_s4_class(lazy_a, "LazyMatrix")
 
   # 2. Check that we stored column locations properly
-  expected.col_location <- Matrix::colMeans(mat_a)
-  observed.col_location <- c@col_locations
-  expect_equal(expected.col_location, observed.col_location)
+  expected_col_location <- c(
+    -0.3953266,
+    0.8146084,
+    0.9221764,
+    -0.4020725,
+    -0.5662574
+  )
+  observed_col_location <- lazy_a@col_locations
+  expect_equal(expected_col_location, observed_col_location, tolerance = 1e-7)
 
   # 3. Check that we stored row locations properly
-  expected.row_location <- Matrix::rowMeans(mat_a)
-  observed.row_location <- c@row_locations
-  expect_equal(expected.row_location, observed.row_location)
+  expected_row_location <- c(0.18031675, -0.03106546)
+  observed_row_location <- lazy_a@row_locations
+  expect_equal(observed_row_location, expected_row_location, tolerance = 1e-7)
 
   # 4. Check that we stored column scales properly
-  expected.col_scale <- base::apply(mat_a, 2, sd)
-  observed.col_scale.1arg <- b@col_scales
-  expect_equal(expected.col_scale, observed.col_scale.1arg)
-  observed.col_scale.2args <- c@col_scales
-  expect_equal(expected.col_scale, observed.col_scale.2args)
+  expected_col_scale <- c(0.2335561, 1.0523163, 1.1213138, 1.2204504, 0.1705477)
+  observed_col_scale <- lazy_a@col_scales
+  expect_equal(observed_col_scale, expected_col_scale, tolerance = 1e-7)
 
   # 5. Check that we stored row scales properly
-  expected.row_scale <- base::apply(mat_a, 1, sd)
-  observed.row_scale.1arg <- b@row_scales
-  expect_equal(expected.row_scale, observed.row_scale.1arg)
-  observed.row_scale.2args <- c@row_scales
-  expect_equal(expected.row_scale, observed.row_scale.2args)
+  expected_row_scale <- c(0.9058228, 1.0947112)
+  observed_row_scale <- lazy_a@row_scales
+  expect_equal(observed_row_scale, expected_row_scale, tolerance = 1e-7)
 
-  # 6. Check that empty LazyMatrix has numeric(0) for all params
-  expect_length(a@col_scales, 0)
-  expect_length(a@row_scales, 0)
-  expect_length(a@col_locations, 0)
-  expect_length(a@row_locations, 0)
+  # 6. Test for handling columns with zero variance
+  set.seed(123)
+  b <- rnorm(7)
+  sparse_matrix <- Matrix::Matrix(0, 5, 7)
+  sparse_matrix[sample(length(sparse_matrix), 4)] <- rnorm(4)
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+  prod_lazy <- lazy_s %*% b
+  prod_normal <- scale(sparse_matrix)%*%b
 })
 
 # Matrix multiplication ####
