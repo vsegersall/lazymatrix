@@ -487,6 +487,19 @@ setMethod("norm", "LazyMatrix", function(x) {
 
 # LSQR ####
 setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
+#' Performs least squares estimation on LazyMatrix object using the iterative lsqr algorithm.
+#'
+#' @param x A LazyMatrix object.
+#' @param y A response vector.
+#'
+#' @returns A Matrix-object with the regression coefficients of the covariates.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' reponse_vector <- c(1,2)
+#' lsqr(lazy_a, response_vector)
 setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {
   A <- x
   b <- y

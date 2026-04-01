@@ -274,33 +274,22 @@ test_that("Cholesky decomposition works", {
 test_that("Linear regression works", {
   # 1. Define non lazy matrix
   set.seed(123)
-  mat_a <- matrix(rnorm(30), nrow = 10, ncol = 3)
-  expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in seq_len(nrow(expected.locations))) {
-    expected.locations[i, ] <- expected.means
-  }
-  expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1 / expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
-  scaled_a <- (mat_a - expected.locations) %*% scale.mat
+  mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
+  scaled_a <- base::scale(mat_a)
 
-  # 2. Define lazy object
-  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
-
-  # 3. Define response
+  # 2. Define response y
   set.seed(456)
   y <- stats::rnorm(nrow(mat_a))
 
-  # 4. Fit models
-  mod_base <- linear_regression(scaled_a, y)
-  mod_lazy <- linear_regression(lazy_a, y)
+  # 3. Base using lm.fit
+  base_coeff <- stats::lm.fit(scaled_a, y)$coefficients
 
-  # 5. Tests
-  #expect_s3_class(mod_lazy, "lm")
-  expect_equal(coef(mod_base), coef(mod_lazy))
-  expect_equal(fitted(mod_base), fitted(mod_lazy))
-  expect_equal(residuals(mod_base), residuals(mod_lazy))
+  # 3. Define lazy object
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+  beta_lazy <- lsqr(lazy_a, y)
+
+  # 6. Tests
+  expect_equal(as.vector(beta_lazy), as.vector(base_coeff), tolerance = 1e-6)
 })
 
 # PCA ####
