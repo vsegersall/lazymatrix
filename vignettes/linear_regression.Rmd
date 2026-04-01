@@ -1,6 +1,7 @@
 ---
 title: "linear_regression"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{linear_regression}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,7 +15,7 @@ knitr::opts_chunk$set(
 )
 ```
 ## 1. Introduction
-Several algorithms for iterative least squares algorithms have been proposed when working with sparse matrices. We have chosen to work with the method proposed by McGill et al(1982) called the LSQR. This iterative algorithm allows us to use custom methods for matrix operations which allows for our lazy computations. We will see that the operations `%*%`, `crossprod` and `norm` are enough for getting stable estimates of the regression coefficients.
+Several algorithms for iterative least squares algorithms have been proposed when working with sparse matrices. We have chosen to work with the method proposed by Paige and Saunders (1982) called LSQR [@paige1982lsqr]. This iterative algorithm allows us to use custom methods for matrix operations which allows for our lazy computations. We will see that the operations `%*%`, `crossprod` and `norm` are enough for getting stable estimates of the regression coefficients.
 
 ## 2. Notation
 The authors proposes an algorithm as a set of initalisation parameters and the design matrix $A$. As mentioned by the authors, the matrix $A$ is used only to compute products of the form $Av$ and $A^Tu$. This object will be our `LazyMatrix` objects and hence, all computations will be done lazily at every step of the iteration. For clarity, matrices will be denoted by capital letters $A, B,\cdots$, vectors by $v,w,\cdots$ and scalars by greek letters $\alpha, \beta,\cdots$. For vectors, the norm is the Euclidean norm and for matrices we assume the Frobenius norm $||A||_F=\sqrt{\sum |a_{ij}|^2}$.
@@ -78,7 +79,7 @@ We will make use of the [Lanczos process](https://en.wikipedia.org/wiki/Lanczos_
 
    7. Check for convergence.
 
-At this point, the authors do not propose a criterion for when we should stop iterating. However, we have chosen to use the criterion that [LSQR in scipy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.lsqr.html) uses. First, compute the residual between the response vector $y$ and the estimate as
+At this point, the authors do not propose a criterion for when we should stop iterating. However, we have chosen to use the criterion that [LSQR in scipy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.lsqr.html) [@virtanen2020scipy; @scipy_lsqr] uses. First, compute the residual between the response vector $y$ and the estimate as
 
 $$
 r = y-Ax_0
@@ -93,19 +94,46 @@ $$
 `tol` is a parameter for tolerance level of the difference that we accept. In our algorithm, it is by default $1e-6$.
 
 ## 3. Implementation
-Assuming we want to fit regression coefficient vector $\beta$ on the scaled matrix $X$ with response vector $y$, the non-lazy approach would be to scale $X$ using `base::scale`and then use something like `stats::lm.fit` to get the estimates. This would imply materializing $X$, so instead we create an instance of `LazyMatrix` and run the method `lazymatrix::lsqr`.
+Assuming we want to fit regression coefficient vector $\beta$ on the scaled matrix $X$ with response vector $y$. We can compute these estimates using lazy computation. Assuming the original sparse matrix `A`, create an instance of `LazyMatrix` and run the method `lazymatrix::lsqr`.
 ```{r setup}
 library(lazymatrix)
  # 1. Define sparseMatrix
-  set.seed(123)
-  n_row <- 7
-  n_col <- 5
-  i <- c(1, 2, 3, 4, 5, 6, 7, 1, 3, 5)
-  j <- c(1, 2, 3, 4, 5, 2, 3, 4, 5, 1)
-  x <- rnorm(length(i))
-  mat_a <- Matrix::sparseMatrix(i = i, j = j, x = x, dims = c(n_row, n_col))
-  scaled_a <- base::scale(mat_a)
+set.seed(123)
+n_row <- 50
+n_col <- 10
+i <- c(
+  1:50,
+  sample(1:50, 20, replace = TRUE),
+  sample(1:50, 15, replace = TRUE)
+)
+j <- c(
+  rep_len(1:10, 50),
+  sample(1:10, 20, replace = TRUE),
+  sample(1:10, 15, replace = TRUE)
+)
+pairs <- unique(data.frame(i = i, j = j))
+i <- pairs$i
+j <- pairs$j
+x <- rnorm(length(i))
+A <- Matrix::sparseMatrix(i = i, j = j, x = x, dims = c(n_row, n_col))
 
-  # 2. Define LazyMatrix
-  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+# 2. Define response vector
+y <- rnorm(nrow(A))
+
+# 3. Define LazyMatrix
+X <- LazyMatrix(A, "sd", "mean")
+
+# 4. Perform lsqr
+lazy_beta <- lsqr(X, y)
 ```
+Now,the non-lazy approach would be to scale `A` using `base::scale`and then use something like `stats::lm.fit` to get the estimates. This would imply creating a copy of `A` with non-zero elements taking up unneccessary memory and being much slower generally.
+```{r non lazy approach}
+scaled_a <- base::scale(A)
+non_lazy_beta <- stats::lm.fit(scaled_a, y)$coefficients
+```
+The estimates are equivalent as is shown below.
+```{r result}
+isTRUE(all.equal(as.vector(lazy_beta), as.vector(non_lazy_beta)))
+```
+
+## 4. References
