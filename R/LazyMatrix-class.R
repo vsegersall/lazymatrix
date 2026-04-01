@@ -482,7 +482,7 @@ setMethod("norm", "LazyMatrix", function(x) {
         -1 * s[i]^2 * 2 * c[i] * x_i[i] +
         s[i]^2 * n * c[i]^2
     }
-  sqrt(sum)
+  base::sqrt(sum)
 })
 
 # LSQR ####
@@ -543,7 +543,16 @@ setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {
 
     # 6. Check for convergence
     residual <- b - A %*% x_0
-    if (sqrt(sum(residual^2)) < tolerance) {
+    residual_norm <- base::sqrt(base::sum(Matrix::diag(base::crossprod(
+      residual
+    ))))
+    if (
+      residual_norm <=
+        tolerance *
+          norm(A) *
+          base::sqrt(base::sum(Matrix::diag(base::crossprod(x_0)))) +
+          tolerance * base::sqrt(base::sum(Matrix::diag(base::crossprod(b))))
+    ) {
       convergence <- TRUE
     }
   }
