@@ -1,0 +1,111 @@
+---
+title: "linear_regression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{linear_regression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+## 1. Introduction
+Several algorithms for iterative least squares algorithms have been proposed when working with sparse matrices. We have chosen to work with the method proposed by McGill et al(1982) called the LSQR. This iterative algorithm allows us to use custom methods for matrix operations which allows for our lazy computations. We will see that the operations `%*%`, `crossprod` and `norm` are enough for getting stable estimates of the regression coefficients.
+
+## 2. Notation
+The authors proposes an algorithm as a set of initalisation parameters and the design matrix $A$. As mentioned by the authors, the matrix $A$ is used only to compute products of the form $Av$ and $A^Tu$. This object will be our `LazyMatrix` objects and hence, all computations will be done lazily at every step of the iteration. For clarity, matrices will be denoted by capital letters $A, B,\cdots$, vectors by $v,w,\cdots$ and scalars by greek letters $\alpha, \beta,\cdots$. For vectors, the norm is the Euclidean norm and for matrices we assume the Frobenius norm $||A||_F=\sqrt{\sum |a_{ij}|^2}$.
+
+## 3. Mathematical Background
+We will make use of the [Lanczos process](https://en.wikipedia.org/wiki/Lanczos_algorithm), for which we will not go into further detail. The main idea is that with the help of a set of initialization parameters, we can with the help of the design matrix $A$ update the regression coefficients for every step of the algorithm. The algorithm is explained as
+
+1. Initialization:
+   \begin{align*}
+      \beta_1 &= \sqrt{\sum b^2}, \\
+      \mathbf{u}_1 &= \frac{\mathbf{b}}{\beta_1}, \\
+      \mathbf{A}^\top \mathbf{u}_1 &= \mathbf{A}^\top \mathbf{u}_1, \\
+      \alpha_1 &= \sqrt{\sum (\mathbf{A}^\top \mathbf{u}_1)^2}, \\
+      \mathbf{v}_1 &= \frac{\mathbf{A}^\top \mathbf{u}_1}{\alpha_1}, \\
+      \mathbf{w}_1 &= \mathbf{v}_1, \\
+      \mathbf{x}_0 &= \mathbf{0}, \\
+      \bar{\phi_1} &= \beta_1, \\
+      \bar{\rho_1} &= \alpha_1.
+   \end{align*}
+
+2. For $i = 1, 2, \dots$, repeat steps 3--6:
+
+   3. Continue the bidiagonalization:
+   \begin{align*}
+      \mathbf{\beta}_u &= \mathbf{A} \mathbf{v}_1 - \alpha_1 \mathbf{u}_1, \\
+      \beta_2 &= \sqrt{\sum \mathbf{\beta}_u^2}, \\
+      \mathbf{u}_2 &= \frac{\mathbf{\beta}_u}{\beta_2}, \\
+      \mathbf{\alpha}_v &= \mathbf{A}^\top \mathbf{u}_2 - \beta_2 \mathbf{v}_1, \\
+      \alpha_2 &= \sqrt{\sum \mathbf{\alpha}_v^2}, \\
+      \mathbf{v}_2 &= \frac{\mathbf{\alpha}_v}{\alpha_2}.
+   \end{align*}
+
+   4. Construct and apply the next orthogonal transformation:
+   \begin{align*}
+      \rho_1 &= \sqrt{(\bar{\rho_1})^2 + \beta_2^2}, \\
+      c_1 &= \frac{\bar{\rho_1}}{\rho_1}, \\
+      s_1 &= \frac{\beta_2}{\rho_1}, \\
+      \theta_2 &= s_1 \alpha_2, \\
+      \bar{\rho_2} &= -c_1 \alpha_2, \\
+      \phi_1 &= c_1\bar{\phi_1}, \\
+      \bar{\phi_2} &= s_1 \bar{\phi_1}.
+   \end{align*}
+
+   5. Update $\mathbf{x}$ and $\mathbf{w}$:
+   \begin{align*}
+      \mathbf{x}_1 &= \mathbf{x}_0 + \frac{\phi_1}{\rho_1} \mathbf{w}_1, \\
+      \mathbf{w}_2 &= \mathbf{v}_2 - \frac{\theta_2}{\rho_1} \mathbf{w}_1.
+   \end{align*}
+
+   6. Reset the loop variables:
+   \begin{align*}
+      \beta_1 &= \beta_2, \\
+      \mathbf{u}_1 &= \mathbf{u}_2, \\
+      \alpha_1 &= \alpha_2, \\
+      \mathbf{v}_1 &= \mathbf{v}_2, \\
+      \bar{\rho_1} &= \bar{\rho_2}, \\
+      \bar{\phi_1} &= \bar{\phi_2}, \\
+      \mathbf{x}_0 &= \mathbf{x}_1, \\
+      \mathbf{w}_1 &= \mathbf{w}_2.
+   \end{align*}
+
+   7. Check for convergence.
+
+At this point, the authors do not propose a criterion for when we should stop iterating. However, we have chosen to use the criterion that [LSQR in scipy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.lsqr.html) uses. First, compute the residual between the response vector $y$ and the estimate as
+
+$$
+r = y-Ax_0
+$$
+
+and then we stop iterating when
+
+$$
+\|r\| \leq \text{tol}\cdot \|A\| \cdot \|x_0\| + \text{tol} \cdot \|b\|.
+$$
+
+`tol` is a parameter for tolerance level of the difference that we accept. In our algorithm, it is by default $1e-6$.
+
+## 3. Implementation
+Assuming we want to fit regression coefficient vector $\beta$ on the scaled matrix $X$ with response vector $y$, the non-lazy approach would be to scale $X$ using `base::scale`and then use something like `stats::lm.fit` to get the estimates. This would imply materializing $X$, so instead we create an instance of `LazyMatrix` and run the method `lazymatrix::lsqr`.
+```{r setup}
+library(lazymatrix)
+ # 1. Define sparseMatrix
+  set.seed(123)
+  n_row <- 7
+  n_col <- 5
+  i <- c(1, 2, 3, 4, 5, 6, 7, 1, 3, 5)
+  j <- c(1, 2, 3, 4, 5, 2, 3, 4, 5, 1)
+  x <- rnorm(length(i))
+  mat_a <- Matrix::sparseMatrix(i = i, j = j, x = x, dims = c(n_row, n_col))
+  scaled_a <- base::scale(mat_a)
+
+  # 2. Define LazyMatrix
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+```

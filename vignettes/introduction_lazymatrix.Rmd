@@ -13,10 +13,10 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
-# Introduction
-When working with sparse matrices in R, a challenge is performing transformations on the matrices without loosing sparsity. An operation such as dividing the elements with it's sample variance and subtracting the sample mean removes sparsity and risks taking up a lot of memory. As memory often is limited, creating copies of the transformd matrix, which is no longer sparse, may not be desirable or even feasible. This crates issues when we aim to work with a scaled version of the design matrix for statistical algorithms such as principal component analysis or linear regression. A solution is working with the `LazyMatrix`-object, which never stores copies of the transformed matrix but performs operations only when neccessary for the desired algorithm.
+## 1. Why LazyMatrix?
+When working with sparse matrices in R, a challenge is performing transformations on the matrix without loosing sparsity. An operation such as dividing the elements with it's sample variance and subtracting the sample mean removes sparsity and risks occupying a lot of memory. As memory often is limited, creating copies of the transformed matrix, which is no longer sparse, may not be desirable or even feasible. This creates issues when we aim to work with a scaled version of the design matrix for statistical algorithms such as principal component analysis or linear regression. A solution is working with the `LazyMatrix`-object, which never stores copies of the transformed matrix but performs operations only when neccessary for the desired algorithm.
 
-# Mathematical Background
+## 2. Mathematical Background
 Assume we want to perform the  matrix operation
 
 $$
@@ -31,12 +31,12 @@ $$
 
 Now, assuming that $A$ is sparse, subtracting $C$ will result in a non-sparse matrix as all zero, or close to zero, elements will now be non-zero if $c_i\neq0$. The simple solution is basically expanding the expression so that we get
 $$
-(A-C)S^{-1}b&=AS^{-1}b-CS^{-1}b
+(A-C)S^{-1}b=AS^{-1}b-CS^{-1}b
 $$
 
 hence an equivalent formalization where we avoid materializing $A$. This reasoning can be applied to all matrix operations but we will see that just a few of them are neccessary to perform complex statistical algorithms.
 
-# Usage
+## 3. Usage
 The way of doing this in R is by creating the S4 class `LazyMatrix` which stores the original data matrix, location and scale parameters.
 ```{r setup}
 library(lazymatrix)
@@ -64,5 +64,5 @@ product
 cross_product
 ```
 
-# Design
-This package has been designed carefully to align with the framework `Matrix`. As this package already has efficient ways of handling sparse matrices using `sparseMatrix`, this package should be seen as an extension which allows for performing efficient lazy computations.
+## 4. Design
+This package has been designed carefully to align with the framework `Matrix`. As this package already has efficient ways of handling sparse matrices using `sparseMatrix`, `lazymatrix` should be seen as an extension which allows for performing efficient lazy computations.
