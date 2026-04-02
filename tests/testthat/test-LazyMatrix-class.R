@@ -8,10 +8,10 @@ gradient_descent_helper <- function(
   n_epochs
 ) {
   w <- w_init
-  b <- b_init
+  b <- Matrix::Matrix(b_init, nrow = nrow(x))
   n <- nrow(x)
   for (epoch in 1:n_epochs) {
-    y_pred <- base::as.vector(x %*% w) + b
+    y_pred <- x %*% w + b
     error <- y_pred - y
     w <- w - (learning_rate * crossprod(x, error)) / n
     b <- b - (learning_rate * sum(error)) / n
@@ -172,16 +172,7 @@ test_that("Gradient descent algorithm works", {
   n <- 50
   p <- 5
   mat_a <- base::matrix(stats::rnorm(n * p), nrow = n, ncol = p)
-  mat_at <- base::t(mat_a)
-  expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in seq_len(nrow(expected.locations))) {
-    expected.locations[i, ] <- expected.means
-  }
-  expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1 / expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
-  scaled_a <- (mat_a - expected.locations) %*% scale.mat
+  scaled_a <- base::scale(mat_a)
 
   # 2. Set up lazy design matrix
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
