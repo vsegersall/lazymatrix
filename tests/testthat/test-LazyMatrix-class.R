@@ -26,11 +26,6 @@ cholesky_decomp <- function(A) {
   return(base::list(A = A, "upper" = L, "lower" = M))
 }
 
-linear_regression <- function(x, y) {
-  x <- as.matrix(x)
-  return(stats::lm(y ~ x))
-}
-
 # === Function Tests === ####
 
 # Class definition ####

@@ -467,7 +467,20 @@ setMethod(
 )
 
 # norm ####
+#' Computes the Frobenius norm of a LazyMatrix object.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns A numeric scalar representing the Frobenius norm of the matrix.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(50), nrow = 10, ncol = 5)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' norm(lazy_a)
 setGeneric("norm", function(x) standardGeneric("norm"))
+#' @rdname norm
+#' @export
 setMethod("norm", "LazyMatrix", function(x) {
   s <- 1 / x@col_scales
   c <- x@col_locations
@@ -481,11 +494,11 @@ setMethod("norm", "LazyMatrix", function(x) {
 })
 
 # LSQR ####
-setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
 #' Performs least squares estimation on LazyMatrix object using the iterative lsqr algorithm.
 #'
 #' @param x A LazyMatrix object.
 #' @param y A response vector.
+#' @param ... Additional arguments (currently unused).
 #'
 #' @returns A Matrix-object with the regression coefficients of the covariates.
 #' @export
@@ -496,7 +509,9 @@ setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' response_vector <- rnorm(nrow(mat_a))
 #' lsqr(lazy_a, response_vector)
-#'
+setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
+#' @rdname lsqr
+#' @export
 setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {
   A <- x
   b <- Matrix::Matrix(y)
