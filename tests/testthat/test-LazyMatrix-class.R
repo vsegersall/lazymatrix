@@ -26,11 +26,6 @@ cholesky_decomp <- function(A) {
   return(base::list(A = A, "upper" = L, "lower" = M))
 }
 
-linear_regression <- function(x, y) {
-  x <- as.matrix(x)
-  return(stats::lm(y ~ x))
-}
-
 # === Function Tests === ####
 
 # Class definition ####
@@ -158,14 +153,66 @@ test_that("SVD works", {
 
   # 2. Define LazyMatrix
   lazy_a <- LazyMatrix(mat_a, scale = "sd", location = "mean")
+  n <- nrow(lazy_a)
+  p <- ncol(lazy_a)
 
   # 3. Perform SVD
   svd_norm <- base::svd(scaled_a)
-  svd_lazy <- svd(lazy_a)
+  svd_lazy <- svd(lazy_a, nu = n, nv = p)
 
   # 4. Test
   expect_equal(svd_norm$d[1:5], svd_lazy$d[1:5])
+  expect_equal(dim(svd_lazy$u[1:9]), dim(svd_norm$u[1:9]))
 })
+# Frobenius norm ####
+test_that("Frobenius norm works", {
+  # 1. Set test matrix
+  set.seed(123)
+  sparse_matrix <- Matrix::Matrix(0, 5, 3)
+  sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+
+  # 2. Set lazy object
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+
+  # 3. Compute norm
+  frob_norm <- base::norm(scale(sparse_matrix), "F")
+  lazy_frob <- norm(lazy_s)
+
+  # 4. Test
+  expect_equal(lazy_frob, frob_norm)
+})
+
+# === Type Tests === ####
+# sparseMatrix ####
+test_that("Methods handle sparseMatrix", {
+  # 1. Define sparseMatrix
+  set.seed(123)
+  n_row <- 7
+  n_col <- 5
+  i <- c(1, 2, 3, 4, 5, 6, 7, 1, 3, 5)
+  j <- c(1, 2, 3, 4, 5, 2, 3, 4, 5, 1)
+  x <- rnorm(length(i))
+  mat_a <- Matrix::sparseMatrix(i = i, j = j, x = x, dims = c(n_row, n_col))
+  scaled_a <- base::scale(mat_a)
+
+  # 2. Define LazyMatrix
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+
+  # 3. Define test objects
+  b <- rnorm(ncol(mat_a))
+  c <- rnorm(nrow(mat_a))
+
+  # 4. Matrix multiplication
+  prod_norm <- scaled_a %*% b
+  prod_lazy <- lazy_a %*% b
+  expect_equal(as.matrix(prod_lazy), prod_norm)
+
+  # 5. Crossprod
+  cp_norm <- base::crossprod(scaled_a, c)
+  cp_lazy <- crossprod(lazy_a, c)
+  expect_equal(as.matrix(cp_lazy), cp_norm)
+})
+
 
 # === Algorithmic Tests === ####
 
@@ -274,33 +321,22 @@ test_that("Cholesky decomposition works", {
 test_that("Linear regression works", {
   # 1. Define non lazy matrix
   set.seed(123)
-  mat_a <- matrix(rnorm(30), nrow = 10, ncol = 3)
-  expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in seq_len(nrow(expected.locations))) {
-    expected.locations[i, ] <- expected.means
-  }
-  expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1 / expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
-  scaled_a <- (mat_a - expected.locations) %*% scale.mat
+  mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
+  scaled_a <- base::scale(mat_a)
 
-  # 2. Define lazy object
-  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
-
-  # 3. Define response
+  # 2. Define response y
   set.seed(456)
   y <- stats::rnorm(nrow(mat_a))
 
-  # 4. Fit models
-  mod_base <- linear_regression(scaled_a, y)
-  mod_lazy <- linear_regression(lazy_a, y)
+  # 3. Base using lm.fit
+  base_coeff <- stats::lm.fit(scaled_a, y)$coefficients
 
-  # 5. Tests
-  #expect_s3_class(mod_lazy, "lm")
-  expect_equal(coef(mod_base), coef(mod_lazy))
-  expect_equal(fitted(mod_base), fitted(mod_lazy))
-  expect_equal(residuals(mod_base), residuals(mod_lazy))
+  # 3. Define lazy object
+  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+  beta_lazy <- lsqr(lazy_a, y)
+
+  # 6. Tests
+  expect_equal(as.vector(beta_lazy), as.vector(base_coeff), tolerance = 1e-6)
 })
 
 # PCA ####

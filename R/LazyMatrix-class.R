@@ -465,3 +465,120 @@ setMethod(
     r
   }
 )
+
+# norm ####
+#' Computes the Frobenius norm of a LazyMatrix object.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns A numeric scalar representing the Frobenius norm of the matrix.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(50), nrow = 10, ncol = 5)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' norm(lazy_a)
+setGeneric("norm", function(x) standardGeneric("norm"))
+#' @rdname norm
+#' @export
+setMethod("norm", "LazyMatrix", function(x) {
+  s <- 1 / x@col_scales
+  c <- x@col_locations
+  x_i <- Matrix::colSums(x@data)
+  x_i_squared <- Matrix::colSums(x@data^2)
+  n <- nrow(x)
+  norm_squared <- base::sum(
+    s^2 * x_i_squared + -2 * s^2 * c * x_i + s^2 * n * c^2
+  )
+  base::sqrt(norm_squared)
+})
+
+# LSQR ####
+#' Performs least squares estimation on LazyMatrix object using the iterative lsqr algorithm.
+#'
+#' @param x A LazyMatrix object.
+#' @param y A response vector.
+#' @param ... Additional arguments (currently unused).
+#'
+#' @returns A Matrix-object with the regression coefficients of the covariates.
+#' @export
+#'
+#' @examples
+#' set.seed(123)
+#' mat_a <- base::matrix(rnorm(500), nrow = 50, ncol = 10)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' response_vector <- rnorm(nrow(mat_a))
+#' lsqr(lazy_a, response_vector)
+setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
+#' @rdname lsqr
+#' @export
+setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {
+  A <- x
+  b <- Matrix::Matrix(y)
+  convergence <- FALSE
+  iter <- 0
+  max_iter <- 100
+  tolerance <- 1e-6
+
+  # 1. Initialization
+  beta_1 <- sqrt(sum(b^2))
+  u_1 <- b / beta_1
+  A_tu_1 <- crossprod(A, u_1)
+  alpha_1 <- sqrt(sum(A_tu_1^2))
+  v_1 <- A_tu_1 / alpha_1
+  w_1 <- v_1
+  x_0 <- rep(0, ncol(A))
+  phi_1_bar <- beta_1
+  rho_1_bar <- alpha_1
+
+  # 2. For i=1,2,... 3 repeat steps 3-6
+  while (!convergence && iter < max_iter) {
+    iter <- iter + 1
+
+    # 3. Continue the bidiagonalization
+    beta_u <- A %*% v_1 - alpha_1 * u_1
+    beta_2 <- sqrt(sum(beta_u^2))
+    u_2 <- beta_u / beta_2
+    alpha_v <- crossprod(A, u_2) - beta_2 * v_1
+    alpha_2 <- sqrt(sum(alpha_v^2))
+    v_2 <- alpha_v / alpha_2
+
+    # 4. Construct and apply next orthogonal transformation
+    rho_1 <- sqrt(rho_1_bar^2 + beta_2^2)
+    c_1 <- rho_1_bar / rho_1
+    s_1 <- beta_2 / rho_1
+    theta_2 <- s_1 * alpha_2
+    rho_2_bar <- -c_1 * alpha_2
+    phi_1 <- c_1 * phi_1_bar
+    phi_2_bar <- s_1 * phi_1_bar
+
+    # 5. Update x, w
+    x_1 <- x_0 + phi_1 / rho_1 * w_1
+    w_2 <- v_2 - theta_2 / rho_1 * w_1
+
+    # reset the loop-variables
+    beta_1 <- beta_2
+    u_1 <- u_2
+    alpha_1 <- alpha_2
+    v_1 <- v_2
+    rho_1_bar <- rho_2_bar
+    phi_1_bar <- phi_2_bar
+    x_0 <- x_1
+    w_1 <- w_2
+
+    # 6. Check for convergence
+    residual <- b - A %*% x_0
+    residual_norm <- Matrix::norm(residual, "F")
+    if (
+      residual_norm <=
+        tolerance *
+          norm(A) *
+          Matrix::norm(x_0, "F") +
+          tolerance *
+            Matrix::norm(b, "F")
+    ) {
+      convergence <- TRUE
+    }
+  }
+  x_0
+})
