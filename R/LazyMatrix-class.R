@@ -467,29 +467,54 @@ setMethod(
 )
 
 # norm ####
+#' Computes the Frobenius norm of a LazyMatrix object.
+#'
+#' @param x A LazyMatrix object.
+#'
+#' @returns A numeric scalar representing the Frobenius norm of the matrix.
+#' @export
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(50), nrow = 10, ncol = 5)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' norm(lazy_a)
 setGeneric("norm", function(x) standardGeneric("norm"))
+#' @rdname norm
+#' @export
 setMethod("norm", "LazyMatrix", function(x) {
   s <- 1 / x@col_scales
   c <- x@col_locations
   x_i <- Matrix::colSums(x@data)
   x_i_squared <- Matrix::colSums(x@data^2)
   n <- nrow(x)
-  sum <- 0
-  norm_squared <-
-    for (i in seq(s)) {
-      sum <- sum +
-        s[i]^2 * x_i_squared[i] +
-        -1 * s[i]^2 * 2 * c[i] * x_i[i] +
-        s[i]^2 * n * c[i]^2
-    }
-  base::sqrt(sum)
+  norm_squared <- base::sum(
+    s^2 * x_i_squared + -2 * s^2 * c * x_i + s^2 * n * c^2
+  )
+  base::sqrt(norm_squared)
 })
 
 # LSQR ####
+#' Performs least squares estimation on LazyMatrix object using the iterative lsqr algorithm.
+#'
+#' @param x A LazyMatrix object.
+#' @param y A response vector.
+#' @param ... Additional arguments (currently unused).
+#'
+#' @returns A Matrix-object with the regression coefficients of the covariates.
+#' @export
+#'
+#' @examples
+#' set.seed(123)
+#' mat_a <- base::matrix(rnorm(500), nrow = 50, ncol = 10)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' response_vector <- rnorm(nrow(mat_a))
+#' lsqr(lazy_a, response_vector)
 setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
+#' @rdname lsqr
+#' @export
 setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {
   A <- x
-  b <- y
+  b <- Matrix::Matrix(y)
   convergence <- FALSE
   iter <- 0
   max_iter <- 100
@@ -543,15 +568,14 @@ setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {
 
     # 6. Check for convergence
     residual <- b - A %*% x_0
-    residual_norm <- base::sqrt(base::sum(Matrix::diag(base::crossprod(
-      residual
-    ))))
+    residual_norm <- Matrix::norm(residual, "F")
     if (
       residual_norm <=
         tolerance *
           norm(A) *
-          base::sqrt(base::sum(Matrix::diag(base::crossprod(x_0)))) +
-          tolerance * base::sqrt(base::sum(Matrix::diag(base::crossprod(b))))
+          Matrix::norm(x_0, "F") +
+          tolerance *
+            Matrix::norm(b, "F")
     ) {
       convergence <- TRUE
     }
