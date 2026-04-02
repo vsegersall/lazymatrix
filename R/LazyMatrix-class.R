@@ -497,7 +497,6 @@ setGeneric("lsqr", function(x, y, ...) standardGeneric("lsqr"))
 #' response_vector <- rnorm(nrow(mat_a))
 #' lsqr(lazy_a, response_vector)
 #'
-  mat_a <- matrix()
 setMethod("lsqr", c("LazyMatrix", "ANY"), function(x, y) {
   A <- x
   b <- Matrix::Matrix(y)

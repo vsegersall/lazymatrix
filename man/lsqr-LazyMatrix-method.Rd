@@ -18,8 +18,10 @@ A Matrix-object with the regression coefficients of the covariates.
 Performs least squares estimation on LazyMatrix object using the iterative lsqr algorithm.
 }
 \examples{
-mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+set.seed(123)
+mat_a <- base::matrix(rnorm(500), nrow = 50, ncol = 10)
 lazy_a <- LazyMatrix(mat_a, "sd", "mean")
-reponse_vector <- c(1,2)
+response_vector <- rnorm(nrow(mat_a))
 lsqr(lazy_a, response_vector)
+
 }
