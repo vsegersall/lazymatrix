@@ -217,4 +217,133 @@ These parameters can now be used for predictions and are comparible with the non
 ## 2.4. Discussion
 Nowadays there exists much more complex versions of the gradient descent algorithm, but this example proves that just with a few matrix operations being performed lazily, we can avoid storing heavy copies of large matrices and only perform operations when they are needed. The idea is to implement methods to `lazymatrix` which allows for more complex algorithms such as Stochastic gradient descent.
 
+# 3. Principal Component Analysis
+## 3.1. Introduction
+A fundamental statistical algorithm for dimension reduction is principal component analysis, or shorter pca. In base R, the function used is `prcomp` which is done by breaking up the matrix `A` into it's singular value decomposition, svd. This implies that we require a lazy implementation of `svd` in order for principal component analysis to work. Moreover, many methods have been proposed to perform SVD on sparse matrices and in `lazymatrix` we have chosen to follow the iterative algorithm proposed by Baglama and Reichel(2005) [@baglama2005augmented] which the authors have also implemented in the R package `irlba`. As this method uses iterative methods, we can easily include `lazymatrix`'s methods for `%*%` and `crossprod` in order to get a working algorithm for svd. However, as the authors themselves say in the paper, the `irlba` function will not compute all singular values and proposes the user to use `base::svd` if one wishes to compute all singular values. This would however involve materializing `A` breaking the lazy computation in the process. Therefore, we work solely with the algorithm proposed by `irlba`.
+
+## 3.2. Mathematical Background
+### 3.2.1. Partial Singular Value Decomposition with `irlba`
+Assume the matrix $\tilde{A}$ being the scaled version of `A` being $n\times p$. We wish to perform a partial singular value decomposition, where the first step is using a Lanczos process which can be described as
+
+1. Choose a random unit vector $p_1\in R^p$
+2. Compute $\tilde{A}p_1=z\in R^n$, transforming $p_1$ from $R^p$ to $R^n$
+3. Normalize the vector $q_1=\frac{z}{||z||}$ and let $\alpha_1=||z||$. This builds up the matrix $B$ as it's first diagonal entry.
+4. Compute the residual vector by first returning to $R^p$ with $\tilde{A}^Tq_1=z\in R^p$ and let
+
+$$
+r=z-\alpha_1p_1 \in R^p.
+$$
+
+5. Compute the length of the residual vector $\beta_1=||r||$ and let
+
+$$
+p_2=\frac{r}{\beta_1}.
+$$
+
+6. Continue to build up $B$ with $\beta_1$ as
+
+$$
+B=\begin{pmatrix}
+\alpha_1 & \beta_1 &
+\end{pmatrix}
+$$
+
+At the next iteration, $p_2$ is used as input vector and we start over until we reach convergence after $m$ steps, resulting in the bidiagonal form of $B\in R^{m\times m}$. At every point when matrix multiplication is being computed with $\tilde{A}$ or $\tilde{A}^T$, lazy computation through `lazymatrix` is being implemented.
+Once we have performed every iteration in the Lanczos process, we can stack the right basis vectors $p_1, p_2, \ldots, p_m$ into the matrix $P_m\in R^{p\times m}$ and the left basis vectors $q_1, q_2,...,q_m$ into $Q_m\in R^{n\times m}$ resulting in the equations
+
+$$
+\begin{align*}
+\tilde{A}P_m &= Q_mB_m\\
+\tilde{A}^TQ_m &= P_mB_m^T+r_me_m^T
+\end{align*}
+$$
+
+where $r_m\in R^p$ is the residual vector which is orthogonal to all columns in $P_m$ and $e_m\in R^m$ being the $m$:th standard vector in $R^m$. We start by looking at
+
+$$
+\tilde{A}P_m=Q_mB_m
+$$
+
+where we know that $B_m$ is bidiagonal and since $m<<\min(n,p)$, this is a smaller matrix and the decomposition can be written as
+
+$$
+B_m=U_B\Sigma_B V_B^T
+$$
+where
+
+$$
+\begin{align*}
+\Sigma_B&=\text{diag}(\sigma_1^B, \sigma_2^B,\ldots,\sigma_m^B)\newline
+U_B&\in R^{m\times m} \\
+V_B&\in R^{m\times m}.
+\end{align*}
+$$
+
+This decompoisition can be used to get approximate solutions to the svd of $\tilde{A}$ with the relationships
+
+$$
+\begin{align*}
+\tilde{\sigma}_j&=\sigma_j^B\\
+\tilde{u}_j &= Q_mu_j^B \in R^n\\
+\tilde{v}_j &= P_mv_j^B \in R^p.\\
+\end{align*}
+$$
+
+This can be validated easily by looking first at the left singular vectors
+
+$$
+\tilde{A}\tilde{v}_j=\tilde{A}P_mv_j^B=Q_mB_mv_j^B=\sigma_j^BQ_mu_j^B=\tilde{\sigma}_j\tilde{u}_j
+$$
+
+which implies that $(\tilde{\sigma}_j,\tilde{u}_j, \tilde{v}_j)$ satisfies the left singular vector equation. Instead, the right side has a residual error if we look at
+
+$$
+\tilde{A}^TQ_m=P_mB_m^T+r_me_m^T
+$$
+
+where it can be shown that
+
+$$
+\tilde{A}^T\tilde{u_j}=\tilde{\sigma}_j\tilde{v_j}+(e_m^Tu_j^B)r_m.
+$$
+
+This error term is proportional to the last computation of $u_j^B$ and residual $r_m$.
+
+Now, we are not neccessarily interested in all $m$ iterations, but it is sufficient to choose $k<m$ as the number of triplets $(\tilde{\sigma_j}, \tilde{u}_j,\tilde{v}_j)$ for which we aim to compute. This is also a parameter in the `svd` call for `lazymatrix`. What we do is after $m$ iterations, we choose the $k$ biggest singular values $\sigma^B_1, \sigma^B_2,\ldots,\sigma^B_k$ and their correspondent left and right vectors. We see whether these have converged based on the criterion
+
+$$
+|\beta_m(e_m^Tu_j^B)|<\text{tol}\cdot \tilde{\sigma}_j
+$$
+
+and $\beta=||r_m||$ and `tol` being a tolerance parameter. If all $k$ have converged, the algorithm is done. If instead we do not have convergence, we start the Lanczos process again using subspace spanned by the $k$ right singular vectors $\tilde{v}_1, \tilde{v}_2,\ldots, \tilde{v}_k$ and from there we run another $m-k$ runs of the process. This ensures that the previously computed singular values $\tilde{\sigma}_1, \ldots, \tilde{\sigma}_k$ are carried over into the new $B_m$​, rather than restarting from scratch.
+
+### 3.2.2. Principal Component Analysis with Partial SVD
+As the regular `stats::prcomp` function uses `base::svd` for dimension reduction, the equivalent method for principal component analysis in `lazymatrix` is identical but with the custom method using partial svd with irlba.
+
+## 3.3. Implementation
+As previously, we define a sparse matrix for which we will perform singular value decomposition and thereafter principal component analysis. We use the same sparse matrix from above `A` and use it do define the lazy matrix `X`.
+
+```{r svd, warning=FALSE}
+#3. SVD
+svd_lazy <- svd(X)
+
+# 4. Print singular values
+print("The singular values are: ")
+svd_lazy$d
+print("The first 6 rows of the left singular vectors are: ")
+head(svd_lazy$u)
+print("The frist 6 rows of the right singular vectors are: ")
+head(svd_lazy$v)
+```
+
+This function has been incorporated within the S4 method for the `LazyMatrix` object if we call `prcomp`. Hence, working with the `LazyMatrix` is equivalent to working with a regular matrix object.
+
+```{r prcomp, warning=FALSE}
+pca_lazy <- prcomp(X)
+print("The first 6 rows of the principal components are: ")
+head(pca_lazy$rotation)
+```
+## 3.4. Conclusion
+What we encounter when using iterative methods for performing sparse svd, is that we will not compute all singular values as is the case when calling `base::svd`. One could argue that the method should, if possible, compute all of them using a regular `base::svd` call. However, this breaks sparsity and the lazy structure, materializing the matrix and hence loosing the lazy computation. Since the use case for `lazymatrix` is mainly for working with large sparse matrices, where computation of all singular values may not even be feasible, we recommend not to use this framework for small matrices where sparsity is not an issue and all singular values may be computed using `base::svd`.
+
 # 4. References
