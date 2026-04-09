@@ -115,33 +115,24 @@ test_that("Lazy tranpose works", {
 
 # Crossproduct ####
 test_that("Crossprod works", {
-  mat_a <- base::matrix(c(1, 2, 3, 1, 2, 3), nrow = 2, ncol = 3)
-  mat_at <- base::t(mat_a)
+  # 1. Define non test objects
+  set.seed(123)
+  mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
+  scaled_a <- Matrix::Matrix(base::scale(mat_a))
+  b <- rnorm(nrow(scaled_a))
+
+  # 2. Define LazyMatrix
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 
-  # crossprod() with vector
-  b <- c(1, -1)
-  expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- base::matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in seq_len(nrow(expected.locations))) {
-    expected.locations[i, ] <- expected.means
-  }
-  expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1 / expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
+  # 3. Test for X^T %*% b
+  scaled_crossprod <- crossprod(scaled_a, b)
+  lazy_crossprod <- crossprod(lazy_a, b)
+  expect_equal(lazy_crossprod, scaled_crossprod)
 
-  exp.outcome <- t(scale.mat) %*% (mat_at - t(expected.locations)) %*% b
-  #exp.outcome <- as.vector(exp.outcome)
-  obs.outcome <- crossprod(lazy_a, b)
-  expect_equal(exp.outcome, obs.outcome)
-
-  # gram matrix
-  exp.gram <- t(scale.mat) %*%
-    (mat_at - t(expected.locations)) %*%
-    (mat_a - expected.locations) %*%
-    scale.mat
-  obs.gram <- crossprod(lazy_a)
-  expect_equal(exp.gram, obs.gram)
+  # 4. Test Gram matrix values, not object
+  scaled_gram <- crossprod(scaled_a)
+  lazy_gram <- crossprod(lazy_a)
+  expect_equal(as.matrix(lazy_gram), as.matrix(scaled_gram))
 })
 
 # Sparse SVD with irlba ####
@@ -213,19 +204,11 @@ test_that("Gradient descent algorithm works", {
 
 # Cholesky decomposition ####
 test_that("Cholesky decomposition works", {
-  # 1. Define non lazy matrix
+  # 1. Define test objects
   set.seed(123)
-  mat_a <- matrix(rnorm(30), nrow = 10, ncol = 3) # 10×3 matris
-  b <- c(1, 2, 3)
-  expected.means <- Matrix::colMeans(mat_a)
-  expected.locations <- matrix(0, nrow = nrow(mat_a), ncol = ncol(mat_a))
-  for (i in seq_len(nrow(expected.locations))) {
-    expected.locations[i, ] <- expected.means
-  }
-  expected.sd <- base::apply(mat_a, 2, sd)
-  expected.scale <- 1 / expected.sd
-  scale.mat <- Matrix::Diagonal(n = length(expected.scale), x = expected.scale)
-  scaled_a <- (mat_a - expected.locations) %*% scale.mat
+  mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
+  scaled_a <- Matrix::Matrix(base::scale(mat_a))
+  b <- rnorm(ncol(scaled_a))
 
   # 2. Define lazy object
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
