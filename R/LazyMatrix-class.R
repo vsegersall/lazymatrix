@@ -341,7 +341,8 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
     first_term <- S_inv %*% xt_x %*% S_inv
     cc_t <- c %*% t(c)
     second_term <- n * S_inv %*% cc_t %*% S_inv
-    first_term - second_term
+    result <- first_term - second_term
+    result
   } else {
     # t(X) %*% y
     # X_tilde^T b = S^1 X^T b - S^1 C^T b
