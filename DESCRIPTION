@@ -17,5 +17,9 @@ Imports:
     Matrix,
     methods,
     stats,
-    irlba
+    irlba,
+    Rcpp
 VignetteBuilder: knitr
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
