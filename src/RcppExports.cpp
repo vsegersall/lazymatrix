@@ -12,29 +12,29 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // lazy_crossprod_vec
-arma::vec lazy_crossprod_vec(arma::mat x, arma::vec s, arma::vec c, arma::vec y);
+arma::vec lazy_crossprod_vec(const arma::mat& x, const arma::vec& s, const arma::vec& c, const arma::vec& y);
 RcppExport SEXP _lazymatrix_lazy_crossprod_vec(SEXP xSEXP, SEXP sSEXP, SEXP cSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type c(cSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type c(cSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(lazy_crossprod_vec(x, s, c, y));
     return rcpp_result_gen;
 END_RCPP
 }
 // lazy_crossprod_vec_sp
-arma::vec lazy_crossprod_vec_sp(arma::sp_mat x, arma::vec s, arma::vec c, arma::vec y);
+arma::vec lazy_crossprod_vec_sp(const arma::sp_mat& x, const arma::vec& s, const arma::vec& c, const arma::vec& y);
 RcppExport SEXP _lazymatrix_lazy_crossprod_vec_sp(SEXP xSEXP, SEXP sSEXP, SEXP cSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::sp_mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type c(cSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type c(cSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(lazy_crossprod_vec_sp(x, s, c, y));
     return rcpp_result_gen;
 END_RCPP

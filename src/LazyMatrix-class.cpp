@@ -4,11 +4,11 @@
 using namespace Rcpp;
 using namespace arma;
 // [[Rcpp::export]]
-arma::vec lazy_crossprod_vec(arma::mat x,
-                            arma::vec s,
-                            arma::vec c,
-                            arma::vec y) {
-    arma::vec s_inv = 1/s;
+arma::vec lazy_crossprod_vec(const arma::mat& x,
+                             const arma::vec& s,
+                             const arma::vec& c,
+                             const arma::vec& y) {
+    arma::vec s_inv = 1.0/s;
     double sum_y = arma::sum(y);
     arma::vec xty = x.t() * y;
     int p = x.n_cols;
@@ -20,11 +20,11 @@ arma::vec lazy_crossprod_vec(arma::mat x,
 }
 
 // [[Rcpp::export]]
-arma::vec lazy_crossprod_vec_sp(arma::sp_mat x,
-                                arma::vec s,
-                                arma::vec c,
-                                arma::vec y) {
-    arma::vec s_inv = 1/s;
+arma::vec lazy_crossprod_vec_sp(const arma::sp_mat& x,
+                             const arma::vec& s,
+                             const arma::vec& c,
+                             const arma::vec& y) {
+    arma::vec s_inv = 1.0/s;
     double sum_y = arma::sum(y);
     arma::vec xty = x.t() * y;
     int p = x.n_cols;
