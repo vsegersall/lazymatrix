@@ -34,7 +34,7 @@ arma::vec lazy_crossprod_vec(const arma::mat& x,
 
     // Compute t(X_tilde) * y = s .* (t(X) * y) - s .* c * sum(y)
     arma::vec s_inv = s;
-    double sum_y = arma::sum(y);
+    double sum_y = arma::accu(y);
     arma::vec xty = x.t() * y;
     int p = x.n_cols;
     arma::vec result(p);
@@ -76,7 +76,7 @@ arma::vec lazy_crossprod_vec_sp(const arma::sp_mat& x,
 
     // Compute t(X_tilde) * y = s .* (t(X) * y) - s .* c * sum(y)
     arma::vec s_inv = s;
-    double sum_y = arma::sum(y);
+    double sum_y = arma::accu(y);
     arma::vec xty = x.t() * y;
     int p = x.n_cols;
     arma::vec result(p);
