@@ -332,7 +332,6 @@ setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
 setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
   if (is.null(y)) {
     # gram matrix
-    # X_tilde^T X_tilde = S^-1 X^T X S^-1 - n S^-1 c c^T S^-1
     s <- 1 / x@col_scales
     S_inv <- Matrix::Diagonal(length(x@col_scales), s)
     c <- x@col_locations
@@ -342,18 +341,22 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
     cc_t <- c %*% t(c)
     second_term <- n * S_inv %*% cc_t %*% S_inv
     result <- first_term - second_term
+    return(result)
+  }
+
+  # t(X) %*% y
+  s <- 1 / x@col_scales
+  c <- x@col_locations
+  y <- as.vector(y)
+
+  if (inherits(x@data, "dgCMatrix")) {
+    sparse_data <- x@data
+    result <- lazy_crossprod_vec_sp(sparse_data, s, c, y)
     result
   } else {
-    # t(X) %*% y
-    # X_tilde^T b = S^1 X^T b - S^1 C^T b
-    s <- 1 / x@col_scales
-    c <- x@col_locations
-    x_tb <- Matrix::Matrix(0, nrow = ncol(x@data), ncol = 1, sparse = FALSE)
-    sum_y <- base::sum(y)
-    for (j in seq_len(ncol(x@data))) {
-      x_tb[j] <- s[j] * base::sum(x@data[, j] * y) - s[j] * c[j] * sum_y
-    }
-    x_tb
+    dense_data <- x@data
+    result <- lazy_crossprod_vec(dense_data, s, c, y)
+    result
   }
 })
 

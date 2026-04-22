@@ -115,21 +115,52 @@ test_that("Lazy tranpose works", {
 
 # Crossproduct ####
 test_that("Crossprod works", {
-  # 1. Define non test objects
-  set.seed(123)
-  mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
-  scaled_a <- Matrix::Matrix(base::scale(mat_a))
-  b <- rnorm(nrow(scaled_a))
+  # 1. Define sparseMatrix
+  base::set.seed(123)
+  n_row <- 50
+  n_col <- 10
+  i <- c(
+    1:50,
+    base::sample(1:50, 20, replace = TRUE),
+    base::sample(1:50, 15, replace = TRUE)
+  )
+  j <- c(
+    base::rep_len(1:10, 50),
+    base::sample(1:10, 20, replace = TRUE),
+    base::sample(1:10, 15, replace = TRUE)
+  )
+  pairs <- base::unique(data.frame(i = i, j = j))
+  i <- pairs$i
+  j <- pairs$j
+  x <- stats::rnorm(length(i))
+  A <- Matrix::sparseMatrix(i = i, j = j, x = x, dims = c(n_row, n_col))
 
-  # 2. Define LazyMatrix
-  lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+  # 2. Define dense test matrix
+  B <- matrix(rnorm(500), nrow = 50, ncol = 10)
 
-  # 3. Test for X^T %*% b
-  scaled_crossprod <- crossprod(scaled_a, b)
-  lazy_crossprod <- crossprod(lazy_a, b)
-  expect_equal(lazy_crossprod, scaled_crossprod)
+  # 3. Scaled objects
+  scaled_a <- base::scale(A)
+  scaled_b <- base::scale(B)
 
-  # 4. Test Gram matrix values, not object
+  # 4. Test vector
+  test_a <- rnorm(nrow(A))
+  test_b <- rnorm(nrow(B))
+
+  # 5. Define lazy matrices
+  lazy_a <- LazyMatrix(A, "sd", "mean")
+  lazy_b <- LazyMatrix(B, "sd", "mean")
+
+  # 6. sparseMatrix: X^T %*% b
+  sparse_crossprod <- crossprod(lazy_a, test_a)
+  expected_a <- base::crossprod(scaled_a, test_a)
+  expect_equal(as.matrix(sparse_crossprod), as.matrix(expected_a)) # ← Add as.matrix()
+
+  # 7. dense matrix: X^T %*% b
+  dense_crossprod <- crossprod(lazy_b, test_b)
+  expected_b <- base::crossprod(scaled_b, test_b)
+  expect_equal(as.matrix(dense_crossprod), as.matrix(expected_b)) # ← Add as.matrix()
+
+  # 5. Test Gram matrix values, not object
   scaled_gram <- crossprod(scaled_a)
   lazy_gram <- crossprod(lazy_a)
   expect_equal(as.matrix(lazy_gram), as.matrix(scaled_gram))
@@ -249,7 +280,7 @@ test_that("Gradient descent algorithm works", {
   preds_lazy <- lazy_a %*% pars_lazy$w + pars_lazy$b
 
   # 5. Test
-  expect_equal(pars_nonlazy$w, pars_lazy$w)
+  expect_equal(as.vector(pars_nonlazy$w), as.vector(pars_lazy$w))
   expect_equal(pars_nonlazy$b, pars_lazy$b)
   expect_equal(preds_nonlazy, preds_lazy)
 })
