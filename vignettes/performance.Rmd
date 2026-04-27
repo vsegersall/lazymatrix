@@ -1,0 +1,120 @@
+---
+title: "Performance of LazyMatrix"
+output:
+  rmarkdown::html_vignette:
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Performance of LazyMatrix}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Why Lazy Computation?
+A legitimate question when implementing a new framework in a programming language is how well it performs compared to already existing solutions. The goal here is to show that using `lazymatrix` improves performance and is especially effective the larger and sparser the original matrix is. We compare the proposed method aganinst the existing solution such as materializing the sparse matrix with `base::scale()` and we will note that this solution is not scaleable when sparsity and dimensionality is high enough. Benchmarking is done using the package `bench`.
+
+# Parametrized Benchmark
+We start by defining a function which allows us to create sparse matrices with different dimensions and sparsity, parameters being `n` as the number of rows, `p` as the number of columns and `sparsity` as the density of non-zero values. These values are generated from a standard normal distribution.
+
+```{r setup}
+library(lazymatrix)
+create_sparsematrix <- function(n, p, sparsity) {
+  n_nonzero <- round(sparsity * n * p)
+
+  i <- sample(1:n, n_nonzero, replace = TRUE)
+  j <- sample(1:p, n_nonzero, replace = TRUE)
+
+  pairs <- unique(data.frame(i = i, j = j))
+  i <- pairs$i
+  j <- pairs$j
+
+  x <- rnorm(length(i))
+  A <- Matrix::sparseMatrix(i = i, j = j, x = x, dims = c(n, p))
+  A
+}
+```
+
+
+# Benchmarking: Lazy Multiplication
+We start by comparing the matrix multiplication method `%*%`. We define a function which takes in the sparse matrix as the first argument, computes the scaled dense version `A` and defines the `LazyMatrix`-object `X` of the same matrix. Then, we use `bench::mark()` to mesaure the performance of computing the product regularly or lazily.
+
+```{r bench-multiply}
+library(bench)
+bench_multiply <- function(sparse_matrix, b) {
+  A <- scale(sparse_matrix, center = TRUE, scale = TRUE)
+  X <- LazyMatrix(sparse_matrix, "sd", "mean")
+  bm <- bench::mark(
+    dense_product = {
+      A %*% b
+    },
+    lazy_product = {
+      X %*% b
+    },
+    check = FALSE,
+    min_iterations = 20
+  )
+  bm
+}
+```
+
+As we can see, the function outputs a `bench` object where the parameters of interest are mainly the minimum time of the iterations, the median time, how many iterations per seconds can be done and the memory allocation of each of the operations.
+
+For a regularly small matrix, let $n=500$ and $p=50$ with a density of $0.05$, so $5$ % of the inputs $a_{ij}$ are non-zero. We also generate a random normal vector $b\in R^p$.
+```{r small}
+set.seed(123)
+m_small <- create_sparsematrix(n = 500, p = 50, sparsity = 0.05)
+test_vector <- rnorm(ncol(m_small))
+
+benchmark_small <- bench_multiply(m_small, test_vector)
+benchmark_small[c("expression", "min", "median", "itr/sec", "mem_alloc")]
+```
+
+For small matrices, we note that the lazy computation does not perform better than the dense computation, it is even slower. Moreover, it shows that the overhead from lazy evaluation remains modest even when it doesn't provide a speedup compared to using a dense matrix. The real strength of lazy computation, however, is shown when the matrices gets bigger and sparsity more widespread.
+
+Hence, let $A\in R^{1000\times 100}$ be a sparse matrix with $1$ % of $a_{ij}\neq 0$.
+
+```{r medium}
+set.seed(123)
+m_medium <- create_sparsematrix(n = 1000, p = 100, sparsity = 0.01)
+test_vector <- rnorm(ncol(m_medium))
+
+benchmark_medium <- bench_multiply(m_medium, test_vector)
+benchmark_medium[c("expression", "min", "median", "itr/sec", "mem_alloc")]
+```
+
+We note that the computation time for the lazy computation remains more or less the same as for the smaller matrix, while the computation time for the dense computation rises dramatically. The lazy computation is on median $3.5$ times faster than working with dense matrices. This relation is confirmed by the following plot.
+
+```{r}
+if (requireNamespace("ggplot2", quietly = TRUE) &&
+    requireNamespace("ggbeeswarm", quietly = TRUE)) {
+  plot(benchmark_medium)
+}
+```
+
+Lastly, we will test a large matrix, $A\in R^{1000\times 700}$ with only $0.1$ % of elements $a_{ij}\neq 0$ at this point.
+
+```{r large}
+set.seed(123)
+m_large<- create_sparsematrix(n = 1000, p = 700, sparsity = 0.001)
+test_vector <- rnorm(ncol(m_large))
+
+benchmark_large <- bench_multiply(m_large, test_vector)
+benchmark_large[c("expression", "min", "median", "itr/sec", "mem_alloc")]
+```
+
+Now, the computation time is approximately $20$ times faster on the lazy object, allowing for performing around $18,500$ iterations per second rather than around $1,300$ for the dense computation. This is clearly shown when we plot the differences below.
+
+```{r}
+if (requireNamespace("ggplot2", quietly = TRUE) &&
+    requireNamespace("ggbeeswarm", quietly = TRUE)) {
+  plot(benchmark_large)
+}
+```
+
+In conclusion, we can say that lazy computation gets better the larger and sparser the matrices we work with are. While lazy evaluation has a slight overhead for small matrices, this becomes negligible as matrix size grows—maintaining consistent computation time regardless of dimensions, while dense operations degrade heavily. The trade-off between the added overhead in `lazymatrix` and computation time reduced tells us that when we work with large sparse matrices, lazy computation is the superior approach. While $131.7$ microseconds may seem small, we need to recall that for many statistical algorithm, for example iterative least square computations, the operation `A%*%b` may have to be perfomed hundreds or even thousands of times, implying that speed is crucial. Once a matrix gets large and sparse enough, it will not even be feasible to scale it, resulting in an advantage of the `lazymatrix`-approach.
