@@ -88,14 +88,7 @@ benchmark_medium <- bench_multiply(m_medium, test_vector)
 benchmark_medium[c("expression", "min", "median", "itr/sec", "mem_alloc")]
 ```
 
-We note that the computation time for the lazy computation remains more or less the same as for the smaller matrix, while the computation time for the dense computation rises dramatically. The lazy computation is on median $3.5$ times faster than working with dense matrices. This relation is confirmed by the following plot.
-
-```{r}
-if (requireNamespace("ggplot2", quietly = TRUE) &&
-    requireNamespace("ggbeeswarm", quietly = TRUE)) {
-  plot(benchmark_medium)
-}
-```
+We note that the computation time for the lazy computation remains more or less the same as for the smaller matrix, while the computation time for the dense computation rises dramatically. The lazy computation is on median $3.5$ times faster than working with dense matrices.
 
 Lastly, we will test a large matrix, $A\in R^{1000\times 700}$ with only $0.1$ % of elements $a_{ij}\neq 0$ at this point.
 
@@ -108,12 +101,21 @@ benchmark_large <- bench_multiply(m_large, test_vector)
 benchmark_large[c("expression", "min", "median", "itr/sec", "mem_alloc")]
 ```
 
-Now, the computation time is approximately $20$ times faster on the lazy object, allowing for performing around $18,500$ iterations per second rather than around $1,300$ for the dense computation. This is clearly shown when we plot the differences below.
+Now, the computation time is approximately $20$ times faster on the lazy object, allowing for performing around $18,500$ iterations per second rather than around $1,300$ for the dense computation. These performance differences are clearly shown in the plots below.
 
-```{r}
+```{r fig.width=10, fig.height=5}
 if (requireNamespace("ggplot2", quietly = TRUE) &&
-    requireNamespace("ggbeeswarm", quietly = TRUE)) {
-  plot(benchmark_large)
+    requireNamespace("ggbeeswarm", quietly = TRUE) &&
+    requireNamespace("gridExtra", quietly = TRUE)) {
+
+  p_m <- plot(benchmark_medium)
+  p_l <- plot(benchmark_large)
+
+  gridExtra::grid.arrange(
+  p_m, p_l,
+  ncol = 2,
+  top = "Microbenchmark for Medium(n=1000, p=100) and Large(n=1000, p=700) Sparse Matrices"
+)
 }
 ```
 
@@ -177,14 +179,7 @@ bm_cp_small <- bench_crossprod(m_small, test_vector)
 bm_cp_small[c("expression", "min", "median", "itr/sec", "mem_alloc")]
 ```
 
-Already at this stage, we see that the implementation with `Rcpp` is around $65$ times faster than the previous old method. It has also smaller memory allocation. This is confirmed in the following plot.
-
-```{r}
-if (requireNamespace("ggplot2", quietly = TRUE) &&
-    requireNamespace("ggbeeswarm", quietly = TRUE)) {
-  plot(bm_cp_small)
-}
-```
+Already at this stage, we see that the implementation with `Rcpp` is around $65$ times faster than the previous old method. It has also smaller memory allocation.
 
 As many of the sparse algorithms implemented in `lazymatrix` are iterative due to the nature of sparse data, the `crossprod()` method is many times done many times for an algorithm. This shows the importance of having efficient methods for these basic operations and we can compute an even larger matrix to acknowledge the power of optimization.
 
@@ -195,7 +190,23 @@ bm_cp_large <- bench_crossprod(m_large, large_vector)
 bm_cp_large[c("expression", "min", "median", "itr/sec", "mem_alloc")]
 ```
 
-While computation with the old method with R gets slower the higher dimensionality of $X$, the `Rcpp`method remains stable with around the same computation time, giving us a higher performance of about $600$ times faster than the original.
+While computation with the old method with R gets slower the higher dimensionality of $X$, the `Rcpp`method remains stable with around the same computation time, giving us a higher performance of about $600$ times faster than the original. These differences are shown in the plots below.
+
+```{r fig.width=10, fig.height=5}
+if (requireNamespace("ggplot2", quietly = TRUE) &&
+    requireNamespace("ggbeeswarm", quietly = TRUE) &&
+    requireNamespace("gridExtra", quietly = TRUE)) {
+
+  p1 <- plot(bm_cp_small)
+  p2 <- plot(bm_cp_large)
+
+  gridExtra::grid.arrange(
+  p1, p2,
+  ncol = 2,
+  top = "Microbenchmark for Small(n=500, p=50) and Large(n=1000, p=700) Sparse Matrices"
+)
+}
+```
 
 ## Some Notes on Optimization
 The performance improvement here is not due entirely to asymptotic time complexity, but part of it can be described more rigorously. Namely, we note that the operation
