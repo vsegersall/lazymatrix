@@ -118,3 +118,102 @@ if (requireNamespace("ggplot2", quietly = TRUE) &&
 ```
 
 In conclusion, we can say that lazy computation gets better the larger and sparser the matrices we work with are. While lazy evaluation has a slight overhead for small matrices, this becomes negligible as matrix size grows—maintaining consistent computation time regardless of dimensions, while dense operations degrade heavily. The trade-off between the added overhead in `lazymatrix` and computation time reduced tells us that when we work with large sparse matrices, lazy computation is the superior approach. While $131.7$ microseconds may seem small, we need to recall that for many statistical algorithm, for example iterative least square computations, the operation `A%*%b` may have to be perfomed hundreds or even thousands of times, implying that speed is crucial. Once a matrix gets large and sparse enough, it will not even be feasible to scale it, resulting in an advantage of the `lazymatrix`-approach.
+
+# Optimization of Matrix Transpose Multiplication
+While many of `lazymatrx`'s methods depends on operations already optimized or in `base R` or in `Matrix`, the method for computing the product of the transpose of a `LazyMatrix` with a vector, i.e. `t(X) %*% b`, is implemented from scratch. This is done to ensure lazy computation of the product, and involves looping over the elements in the matrix. Loops in R are generally not as efficient as vectorized operations, so what we did was writing a method for `crossprod()` using `Rcpp` and `RcppArmadillo`. This allows us to compute the product of the transpose of a `LazyMatrix` with a vector much faster than if we were to use a loop in R. The method is implemented in C++ and is optimized for performance, allowing us to compute the product efficiently even for large matrices. We can compare the performance of this method against a naive implementation using loops in R, and we will see that the C++ implementation is significantly faster.
+
+To avoid premature optimization, the issue of the `lazymatrix::crossprod()` method was identified using the `profvis` package. We profiled particularly some of the statistical algorithms and found that the current implementation was a clear bottleneck in the performance of the computation.
+
+## Microbenchmarking `crossprod()`
+Here we will present a microbenchmark for the old implementation of the matrix transpose multiplication compared to the current one. This showcases that especially when working with large sparse matrices, the obvious use-case of `lazymatrix`, the current implementation is much stronger. We start by defining the function that was used in R.
+```{r}
+crossprod_R_impl <- function(x, y) {
+    # t(X) %*% y
+    s <- 1 / x@col_scales
+    c_vec <- x@col_locations
+
+    x_tb <- numeric(ncol(x@data))
+    sum_y <- base::sum(y)
+
+    for (j in seq_len(ncol(x@data))) {
+      x_tb[j] <- s[j] * base::sum(x@data[, j] * y) -
+                 s[j] * c_vec[j] * sum_y
+    }
+    return(matrix(x_tb, ncol = 1))
+}
+```
+
+The arguments for the function is the `LazyMatrix` object `x` and the vector `y` which we will use to perform the operation
+
+$$
+x^Ty.
+$$
+
+Moreover, we need also to create a function for the benchmarking among the two methods. Note that both the old and the new implementations takes only the `LazyMatrix` object as argument and the benchmarking is therefore done only on the `LazyMatrix`. Compared to the previous benchmarking, the dimensions are changed as $X^T\in R^{p\times n}$ and hence we need $b\in R^n$.
+
+```{r}
+bench_crossprod <- function(sparse_matrix, b) {
+  X <- LazyMatrix(sparse_matrix, "sd", "mean")
+  bm <- bench::mark(
+    r_cross_product = {
+      crossprod_R_impl(X, b)
+    },
+    rcpp_cross_product = {
+      crossprod(X, b)
+    },
+    check = FALSE,
+    min_iterations = 20
+  )
+  bm
+}
+```
+
+We perform similar tests as the previous ones, starting with the smaller matrix defined above and then aumenting the dimensionality with further testing.
+
+```{r}
+set.seed(123)
+test_vector <- rnorm(nrow(m_small))
+bm_cp_small <- bench_crossprod(m_small, test_vector)
+bm_cp_small[c("expression", "min", "median", "itr/sec", "mem_alloc")]
+```
+
+Already at this stage, we see that the implementation with `Rcpp` is around $65$ times faster than the previous old method. It has also smaller memory allocation. This is confirmed in the following plot.
+
+```{r}
+if (requireNamespace("ggplot2", quietly = TRUE) &&
+    requireNamespace("ggbeeswarm", quietly = TRUE)) {
+  plot(bm_cp_small)
+}
+```
+
+As many of the sparse algorithms implemented in `lazymatrix` are iterative due to the nature of sparse data, the `crossprod()` method is many times done many times for an algorithm. This shows the importance of having efficient methods for these basic operations and we can compute an even larger matrix to acknowledge the power of optimization.
+
+```{r}
+set.seed(123)
+large_vector <- rnorm(nrow(m_large))
+bm_cp_large <- bench_crossprod(m_large, large_vector)
+bm_cp_large[c("expression", "min", "median", "itr/sec", "mem_alloc")]
+```
+
+While computation with the old method with R gets slower the higher dimensionality of $X$, the `Rcpp`method remains stable with around the same computation time, giving us a higher performance of about $600$ times faster than the original.
+
+## Some Notes on Optimization
+The performance improvement here is not due entirely to asymptotic time complexity, but part of it can be described more rigorously. Namely, we note that the operation
+
+$$
+X^T b
+$$
+
+where $X^T \in R^{p \times n}$ and $b \in R^n$ requires
+
+$$
+O(np)
+$$
+
+in time complexity. However, the R implementation performs additional allocations within its loop; each iteration involves operations over vectors of length $n$, leading to $O(n)$ work per iteration. The `Rcpp` implementation instead can be expressed as having a single output vector of size
+
+$$
+O(p)
+$$
+
+and avoids repeated intermediate allocations during the computation. Hence, the improvement here is not fully due to time complexity but reduced constant factors and allocations within the R implementation. In particular, the R implementation allocates temporary vectors within each iteration of the loop, while the Rcpp implementation performs the computation in a single pass over memory without repeated allocation overhead. This leads to significantly improved performance in practice, especially for large-scale sparse matrices where the operation is invoked repeatedly within iterative algorithms.
