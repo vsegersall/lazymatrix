@@ -1,21 +1,28 @@
 Package: lazymatrix
 Title: Perform Complex Matrix Operations Symbolically on Sparse Matrices
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R:
     person("Viktor", "Segersall", , "viktor.segersall@proton.me", role = c("aut", "cre"))
 Description: A system which allows computation of high order sparse matrices symbolically.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Suggests: 
+Suggests:
+    bench,
+    ggplot2,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tidyr
 Config/testthat/edition: 3
-Imports: 
+Imports:
     Matrix,
     methods,
     stats,
-    irlba
+    irlba,
+    Rcpp
 VignetteBuilder: knitr
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
