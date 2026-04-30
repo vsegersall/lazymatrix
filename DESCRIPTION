@@ -26,3 +26,4 @@ VignetteBuilder: knitr
 LinkingTo: 
     Rcpp,
     RcppArmadillo
+URL: https://vsegersall.github.io/lazymatrix/
