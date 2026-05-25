@@ -100,6 +100,21 @@ benchmark_medium_large <- bench_multiply(m_medium_large, test_vector)
 benchmark_medium_large[c("expression", "min", "median", "itr/sec", "mem_alloc")]
 ```
 We note that the lazy computation still has around the same computation time, whereas the dense product is reduced due to fewer non-zero elements.
+```{r fig.width=10, fig.height=5}
+if (requireNamespace("ggplot2", quietly = TRUE) &&
+    requireNamespace("ggbeeswarm", quietly = TRUE) &&
+    requireNamespace("gridExtra", quietly = TRUE)) {
+
+  p_m <- plot(benchmark_medium)
+  p_l <- plot(benchmark_large)
+
+  gridExtra::grid.arrange(
+  p_m, p_l,
+  ncol = 2,
+  top = "Microbenchmark for Medium(n=1000, p=100) and Large(n=1000, p=700) Sparse Matrices"
+)
+}
+```
 
 Lastly, we test a larger matrix, $A\in R^{1000\times 700}$ and keep the same sparsity as before, $0.1$ % of elements $a_{ij}\neq 0$.
 
