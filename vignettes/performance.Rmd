@@ -90,7 +90,18 @@ benchmark_medium[c("expression", "min", "median", "itr/sec", "mem_alloc")]
 
 We note that the computation time for the lazy computation remains more or less the same as for the smaller matrix, while the computation time for the dense computation rises dramatically. The lazy computation is on median $3.5$ times faster than working with dense matrices.
 
-Lastly, we will test a large matrix, $A\in R^{1000\times 700}$ with only $0.1$ % of elements $a_{ij}\neq 0$ at this point.
+Now, let's keep one parameter fixed and aument the other one.
+Let $M\in R^{1000, 100)$ but we reduce the density of the non-zero elements to be $0.1$ %.
+
+```{r mediumlarge}
+set.seed(123)
+m_medium_large <- create_sparsematrix(n = 1000, p = 100, sparsity = 0.001)
+benchmark_medium_large <- bench_multiply(m_medium_large, test_vector)
+benchmark_medium_large[c("expression", "min", "median", "itr/sec", "mem_alloc")]
+```
+We note that the lazy computation still has around the same computation time, whereas the dense product is reduced due to fewer non-zero elements.
+
+Lastly, we test a larger matrix, $A\in R^{1000\times 700}$ and keep the same sparsity as before, $0.1$ % of elements $a_{ij}\neq 0$.
 
 ```{r large}
 set.seed(123)
