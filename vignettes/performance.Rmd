@@ -90,7 +90,7 @@ benchmark_medium[c("expression", "min", "median", "itr/sec", "mem_alloc")]
 
 We note that the computation time for the lazy computation remains more or less the same as for the smaller matrix, while the computation time for the dense computation rises dramatically. The lazy computation is on median $3.5$ times faster than working with dense matrices.
 
-Now, let's keep one parameter fixed and aument the other one.
+Now, let's keep one parameter fixed and augment the other one.
 Let $M\in R^{1000, 100)$ but we reduce the density of the non-zero elements to be $0.1$ %.
 
 ```{r mediumlarge}
@@ -100,6 +100,8 @@ benchmark_medium_large <- bench_multiply(m_medium_large, test_vector)
 benchmark_medium_large[c("expression", "min", "median", "itr/sec", "mem_alloc")]
 ```
 We note that the lazy computation still has around the same computation time, whereas the dense product is reduced due to fewer non-zero elements.
+The power of `lazymatrix` is rather shown when we upscale the dimensionality and keep sparsity constant.
+
 ```{r fig.width=10, fig.height=5}
 if (requireNamespace("ggplot2", quietly = TRUE) &&
     requireNamespace("ggbeeswarm", quietly = TRUE) &&
