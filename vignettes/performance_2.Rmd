@@ -55,7 +55,7 @@ create_sparsematrix_col <- function(n, p, sparsity_col) {
 }
 
 #--------------------------------------------------
-# Benchmark function (unchanged)
+# Benchmark function Computation Time
 #--------------------------------------------------
 bench_multiply <- function(sparse_matrix, b) {
   A <- scale(sparse_matrix, center = TRUE, scale = TRUE)
@@ -66,6 +66,34 @@ bench_multiply <- function(sparse_matrix, b) {
     check         = FALSE,
     min_iterations = 20
   )
+}
+
+#--------------------------------------------------
+# Benchmark function for Memory Allocation
+#--------------------------------------------------
+
+benchmark_memory <- function(M) {
+  dense_size <- tryCatch({
+    A_dense <- scale(as.matrix(M), center = TRUE, scale = TRUE)
+    mem     <- as.numeric(utils::object.size(A_dense)) / 1024^2
+    rm(A_dense); gc()
+    data.frame(method = "Dense", success = TRUE, mem_MB = mem)
+  }, error = function(e) {
+    message("Dense error: ", e$message)
+    data.frame(method = "Dense", success = FALSE, mem_MB = NA)
+  })
+
+  lazy_size <- tryCatch({
+    X_lazy <- LazyMatrix(M, "sd", "mean")
+    mem    <- as.numeric(utils::object.size(X_lazy)) / 1024^2
+    rm(X_lazy); gc()
+    data.frame(method = "Lazy", success = TRUE, mem_MB = mem)
+  }, error = function(e) {
+    message("Lazy error: ", e$message)
+    data.frame(method = "Lazy", success = FALSE, mem_MB = NA)
+  })
+
+  bind_rows(dense_size, lazy_size)
 }
 ```
 
