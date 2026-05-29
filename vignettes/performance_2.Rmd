@@ -1,0 +1,202 @@
+---
+title: "performance_2"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{performance_2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(lazymatrix)
+```
+
+# Helper Functions
+Below is the helper functions for generating sparse matrices and benchmarking the computation of `X%*%b` and `scaled_X%*%b`.
+
+```{r helper-functions}
+library(Matrix)
+library(bench)
+library(dplyr)
+library(ggplot2)
+#--------------------------------------------------
+# Sparse matrix generator
+#--------------------------------------------------
+create_sparsematrix_col <- function(n, p, sparsity_col) {
+  # sparsity_col = fraction of non-zeros PER COLUMN
+  # So each column has round(sparsity_col * n) non-zero entries
+  n_nonzero_col <- round(sparsity_col * n)
+
+  i_all <- c()
+  j_all <- c()
+
+  for (col in 1:p) {
+    i_col <- sample(1:n, n_nonzero_col, replace = FALSE)
+    i_all <- c(i_all, i_col)
+    j_all <- c(j_all, rep(col, n_nonzero_col))
+  }
+
+  pairs <- unique(data.frame(i = i_all, j = j_all))
+  x     <- rnorm(nrow(pairs))
+
+  Matrix::sparseMatrix(
+    i    = pairs$i,
+    j    = pairs$j,
+    x    = x,
+    dims = c(n, p)
+  )
+}
+
+#--------------------------------------------------
+# Benchmark function (unchanged)
+#--------------------------------------------------
+bench_multiply <- function(sparse_matrix, b) {
+  A <- scale(sparse_matrix, center = TRUE, scale = TRUE)
+  X <- LazyMatrix(sparse_matrix, "sd", "mean")
+  bench::mark(
+    dense_product = { A %*% b },
+    lazy_product  = { X %*% b },
+    check         = FALSE,
+    min_iterations = 20
+  )
+}
+```
+
+# Results of Timing Benchmark
+```{r}
+#--------------------------------------------------
+# Parameters (smaller for testing)
+#--------------------------------------------------
+n              <- 10000
+sparsity_cols  <- c(0.05, 0.001, 0.0001)
+p_values       <- c(50, 100, 200, 500, 1000, 2000)
+
+#--------------------------------------------------
+# Run benchmarks
+#--------------------------------------------------
+results <- list()
+counter <- 1
+
+for (sc in sparsity_cols) {
+  cat("Running sparsity_col =", sc, "\n")
+  for (p in p_values) {
+    cat("  p =", p, "\n")
+
+    M  <- create_sparsematrix_col(n = n, p = p, sparsity_col = sc)
+    b  <- rnorm(p)
+    bm <- bench_multiply(M, b)
+
+    tmp <- bm %>%
+      select(expression, min, median, mem_alloc) %>%
+      mutate(sparsity_col = sc, n = n, p = p)
+
+    results[[counter]] <- tmp
+    counter <- counter + 1
+    rm(M); gc()
+  }
+}
+
+#--------------------------------------------------
+# Process results
+#--------------------------------------------------
+benchmark_results <- bind_rows(results) %>%
+  mutate(
+    method     = as.character(expression),
+    median_sec = as.numeric(median),
+    min_sec    = as.numeric(min)
+  )
+
+```
+
+# Results of Memory Benchmark
+```{r}
+#--------------------------------------------------
+# Parameters
+#--------------------------------------------------
+n              <- 10000
+sparsity_cols  <- c(0.05, 0.001, 0.0001)
+p_values       <- c(50, 100, 200, 500, 1000, 2000, 5000)
+
+#--------------------------------------------------
+# Process results
+#--------------------------------------------------
+results <- list()
+counter <- 1
+
+for (sc in sparsity_cols) {
+  cat("Running sparsity_col =", sc, "\n")
+  for (p in p_values) {
+    cat("  p =", p, "\n")
+
+    M       <- create_sparsematrix_col(n = n, p = p, sparsity_col = sc)
+    mem_res <- benchmark_memory(M)
+    mem_res <- mem_res %>%
+      mutate(sparsity_col = sc, n = n, p = p)
+
+    results[[counter]] <- mem_res
+    counter <- counter + 1
+    rm(M); gc()
+  }
+}
+
+memory_results_col <- bind_rows(results) %>%
+  mutate(mem_GB = mem_MB / 1024)
+
+```
+
+# Plots
+
+```{r}
+#--------------------------------------------------
+# Plot for computation time
+#--------------------------------------------------
+ggplot(
+  benchmark_results %>%
+    mutate(sc_label = factor(
+      paste0("sparsity/col = ", sparsity_col),
+      levels = paste0("sparsity/col = ", sort(unique(sparsity_col)))
+    )),
+  aes(x = p, y = median_sec, color = method, group = method)
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_y_log10() +
+  facet_wrap(~ sc_label, nrow = 1) +
+  labs(
+    x     = "Number of columns (p)",
+    y     = "Median runtime (seconds, log scale)",
+    color = "Method"
+  ) +
+  thesis_theme()
+
+#--------------------------------------------------
+# Plot for Memory Allocation
+#--------------------------------------------------
+ggplot(
+  memory_results_col %>%
+    mutate(sc_label = factor(
+      paste0("sparsity/col = ", sparsity_col),
+      levels = paste0("sparsity/col = ", sort(unique(sparsity_col)))
+    )),
+  aes(x = p, y = mem_GB, color = method, group = method)
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_y_log10(
+    labels = scales::label_number(suffix = " GB", accuracy = 0.0001)
+  ) +
+  facet_wrap(~ sc_label, nrow = 1) +
+  labs(
+    x        = "Number of columns (p)",
+    y        = "Allocated memory (GB, log scale)",
+    color    = "Method"
+  ) +
+  thesis_theme()
+```
