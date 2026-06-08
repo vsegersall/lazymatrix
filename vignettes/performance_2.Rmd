@@ -10,7 +10,9 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 3.5
 )
 ```
 
@@ -18,8 +20,19 @@ knitr::opts_chunk$set(
 library(lazymatrix)
 ```
 
-# Helper Functions
-Below is the helper functions for generating sparse matrices and benchmarking the computation of `X%*%b` and `scaled_X%*%b`.
+# Performance of `lazymatrix`
+In this vignette, we discuss the main reason for lazy computation, namely the increase in performance.
+Assume `X` as the sparse data matrix containing fetures, `lazy_X` the `LazyMatrix` object and `A` is the normalized version obtained using `base::scale(X)`.
+We use the package `bench` to microbenchmark the computation time of matrix-vector multiplication, hence comparing the operation `lazy_X%*%b` against `A%*%b`.
+Thereafter, we look at memory allocation, where we compare storing the `LazyMatrix` object and the normalized object.
+
+## Helper Functions
+For these experiment, we need a set of helper functions.
+As the main use-case is working with sparse data, we define a helper forgenerating sparse matrices `create_sparse_matrix_col()` which allows for adjusting the parameter `sparsity_col` so the proportion of elements that are non-zero within each column.
+For simplicity, this parameter will be called $\alpha$,
+Then, we use the helper `bench_multiply()` where we define the `LazyMatrix` object for the input matrix, normalize it and then we benchmark matrix-vector multiplication.
+The function `benchmark_memory()` is written in a similar way, though it uses `utils::object.size()` to measure memory allocation of an object, the lazy and the dense.
+Lastly, two helper functions which are used for using consistent themes for `ggplot2` throughout the vignette.
 
 ```{r helper-functions}
 library(Matrix)
@@ -97,7 +110,7 @@ benchmark_memory <- function(M) {
 }
 
 #--------------------------------------------------
-# Plot Theme used throuhgout the Thesis for ggplot2
+# Plot Theme used throughout the thesis for ggplot2
 #--------------------------------------------------
 thesis_theme <- function(base_size = 12) {
   theme(
@@ -111,9 +124,51 @@ thesis_theme <- function(base_size = 12) {
     axis.text.x      = element_text(size = rel(1.01), angle = 45, hjust = 1)
   )
 }
+
+#--------------------------------------------------
+# Plot Theme used throughout vignettes for ggplot2
+#--------------------------------------------------
+
+vignette_theme <- function(base_size = 12) {
+  theme_minimal(base_size = base_size) +
+  theme(
+    # Subtle background strip for facet labels
+    strip.background  = element_rect(fill = "#f0f0f0", colour = NA),
+    strip.text        = element_text(face = "bold", size = rel(0.95)),
+
+    # Thin, unobtrusive grid
+    panel.grid.major  = element_line(colour = "grey88", linewidth = 0.4),
+    panel.grid.minor  = element_blank(),
+
+    # Light border just around facet panels
+    panel.border      = element_rect(colour = "grey70", fill = NA, linewidth = 0.5),
+    panel.spacing     = unit(0.8, "lines"),
+
+    # Legend inside or on top saves horizontal space in HTML
+    legend.position   = "top",
+    legend.key.width  = unit(1.8, "lines"),
+
+    # Axis: no need to rotate if labels are short
+    axis.text.x       = element_text(size = rel(0.9)),
+    axis.text.y       = element_text(size = rel(0.9)),
+    axis.title        = element_text(size = rel(0.95)),
+
+    plot.margin       = margin(8, 12, 8, 8)
+  )
+}
 ```
 
-# Results of Timing Benchmark
+## Results of Computation Time Benchmark
+
+We run the experiment as follows: let `n` be the number of rows of the sparse matrix which we let be constant for all matrices at `n <- 10000`.
+In statistics, the number of rows usually denotes the number of observations and the columns the features.
+Hence, letting `n` be constant and augmenting the columns `p` reflects the experiment of adding features to an existing dataset.
+Apart from dimensionality, the experiment also depends on sparsity, so the proportion of non-zero elements for every column.
+We test for three levels of sparsity, 5 %, 0.1 % and 0.01 %.
+A rule of thumb when working with sparse matrices, is that the larger the dimensionality, the lesser the sparsity usually.
+
+Then, we run the benchmark function for matrix-vector multiplication defined above for every `p` and every `sparsity`.
+The results are therafter translated into seconds and we keep them in a tibble which is used to graph the result.
 ```{r}
 #--------------------------------------------------
 # Parameters (smaller for testing)
@@ -159,7 +214,48 @@ benchmark_results <- bind_rows(results) %>%
 
 ```
 
-# Results of Memory Benchmark
+The results are presented in the following plot.
+
+```{r}
+#--------------------------------------------------
+# Plot for computation time
+#--------------------------------------------------
+ggplot(
+  benchmark_results %>%
+    mutate(sc_label = factor(
+      paste0("alpha = ", sparsity_col),
+      levels = paste0("alpha = ", sort(unique(sparsity_col)))
+    )),
+  aes(x = p, y = median_sec, color = method, group = method)
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_y_log10() +
+  facet_wrap(~ sc_label, nrow = 1) +
+  labs(
+    x     = "Number of columns (p)",
+    y     = "Median runtime (seconds, log scale)",
+    color = "Method"
+  ) +
+  vignette_theme(13)
+```
+
+Each facet corresponds to a sparsity level, with the logarithm of median runtime on the vertical axis and the number of features $p$ on the horizontal axis.
+The red line represents the dense computation while the blue is the lazy computation.
+Looking at the figure, we note that dense computation requires $O(np)$ operations for the centering step, regardless of sparsity, since every element must be explicitly centered.
+This is confirmed in the plot, where the dense curve is identical across all three facets, increasing only with $p$.
+The blue line representing the lazy computation however, shows clearly that computation time decreases as $\alpha$ gets lower.
+For $\alpha=0.05$, the trend is similar to that of the dense computation, in the sense that as dimensionality gets higher, so does computation time.
+This follows from the $O(k + p)$ complexity of lazy computation, which approaches $O(np)$ as $\alpha$ increases.
+Conversely, as sparsity decreases and $k \ll np$, the computational advantage of lazy evaluation becomes clear.
+Lazy computation exploits sparsity by operating only over the $k$ non-zero entries, avoiding the redundant computation on zero-valued elements that dense methods perform.
+Hence, the lazy computation gets better the sparser the matrix is, and also better the higher the dimensionality compared to dense methods.
+
+## Results of Memory Benchmark
+The benchmark experiment is similar to that of computation time.
+We let $n$ be constant, augment $p$ and test for three levels of sparsity.
+Here, the measurements we make is the amount of memory used for storing the different objects.
+
 ```{r}
 #--------------------------------------------------
 # Parameters
@@ -195,39 +291,17 @@ memory_results_col <- bind_rows(results) %>%
 
 ```
 
-# Plots
+The results are presented in the following plot.
 
 ```{r}
-#--------------------------------------------------
-# Plot for computation time
-#--------------------------------------------------
-ggplot(
-  benchmark_results %>%
-    mutate(sc_label = factor(
-      paste0("sparsity/col = ", sparsity_col),
-      levels = paste0("sparsity/col = ", sort(unique(sparsity_col)))
-    )),
-  aes(x = p, y = median_sec, color = method, group = method)
-) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  scale_y_log10() +
-  facet_wrap(~ sc_label, nrow = 1) +
-  labs(
-    x     = "Number of columns (p)",
-    y     = "Median runtime (seconds, log scale)",
-    color = "Method"
-  ) +
-  thesis_theme(15)
-
 #--------------------------------------------------
 # Plot for Memory Allocation
 #--------------------------------------------------
 ggplot(
   memory_results_col %>%
     mutate(sc_label = factor(
-      paste0("sparsity/col = ", sparsity_col),
-      levels = paste0("sparsity/col = ", sort(unique(sparsity_col)))
+      paste0("alpha = ", sparsity_col),
+      levels = paste0("alpha = ", sort(unique(sparsity_col)))
     )),
   aes(x = p, y = mem_GB, color = method, group = method)
 ) +
@@ -242,5 +316,16 @@ ggplot(
     y        = "Allocated memory (GB, log scale)",
     color    = "Method"
   ) +
-  thesis_theme(15)
+  vignette_theme(13)
 ```
+Each facet corresponds to a sparsity level, with the logarithm of median runtime on the vertical axis and the number of features $p$ on the horizontal axis.
+The red line represents the dense memory consumption while the blue is the lazy object's.
+A key motivation for `lazymatrix` is the memory inefficiency of explicitly materializing normalized matrices.
+We therefore construct a memory benchmark under the same experimental setting as above, measuring memory usage rather than computation time.
+The dense representation requires $O(np)$ memory regardless of sparsity, as centering destroys the sparse structure and forces a full materialization of the matrix.
+As expected, the dense representation grows linearly in memory with increasing dimensionality.
+The implication being that using dense methods is infeasible for larger-scale data.
+The lazy representation follows a similar growth pattern at $\alpha = 0.05$, as the data matrix and its associated location and scale parameters together require $O(k + p)$ memory, and $k$ remains large relative to $np$ at high sparsity levels.
+As sparsity increases, however, $k \ll np$ and the lazy representation retains significantly fewer bytes, directly reflecting the theoretical memory complexity established earlier.
+For the sparsest facet, memory consumption still grows with $p$ but remains orders of magnitude smaller than the dense representation across all three dimensions.
+In applications, high dimensionality and high sparsity tend to be correlated, hence it is crucial for `LazyMatrix`to perform well with the two parameters considered.
