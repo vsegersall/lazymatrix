@@ -1,6 +1,7 @@
 # Singular Value decomposition for LazyMatrix.
 
-Performs lazy SVD using irlba for svd on sparse matrices.
+Performs lazy SVD using irlba for partial Singular value decomposition
+on sparse matrices.
 
 ## Usage
 

@@ -1,7 +1,7 @@
 # Crossproduct for LazyMatrix
 
-Computes the crossproduct of a LazyMatrix object with itself or with
-another vector/matrix.
+Computes the crossproduct of a LazyMatrix object as it's Gram matrix or
+computes the transposed matrix-vector multiplication.
 
 ## Usage
 

@@ -6,8 +6,6 @@
   : LazyMatrix S4 class
 - [`LazyMatrix()`](https://vsegersall.github.io/lazymatrix/reference/LazyMatrix.md)
   : Constructs a LazyMatrix object.
-- [`as.matrix(`*`<LazyMatrix>`*`)`](https://vsegersall.github.io/lazymatrix/reference/as.matrix-LazyMatrix-method.md)
-  : Attempts to turn the data matrix to a scaled matrix-object.
 - [`colnames(`*`<LazyMatrix>`*`)`](https://vsegersall.github.io/lazymatrix/reference/colnames-LazyMatrix-method.md)
   : Retrieve or set the row or column names of a LazyMatrix object.
 - [`crossprod(`*`<LazyMatrix>`*`,`*`<ANY>`*`)`](https://vsegersall.github.io/lazymatrix/reference/crossprod-LazyMatrix-ANY-method.md)
