@@ -29,7 +29,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
 
-    steps:
+steps:
       - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-pandoc@v2
@@ -45,9 +45,12 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      - uses: etiennebacher/setup-jarl@v0.1.1  # <-- moved up, version bumped
+        with:
+          src: "./R"
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
-
-      - uses: etiennebacher/setup-jarl@v0.1.0 
+          
