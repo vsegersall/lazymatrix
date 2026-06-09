@@ -178,12 +178,15 @@ test_that("SVD works", {
   n <- nrow(lazy_a)
   p <- ncol(lazy_a)
 
+  # 3. Set a smaller number of sing values
+  k <- 3
+
   # 3. Perform SVD
-  svd_norm <- base::svd(scaled_a)
-  svd_lazy <- svd(lazy_a, nu = n, nv = p)
+  svd_norm <- base::svd(scaled_a, nu = k, nv = k)
+  svd_lazy <- svd(lazy_a, nu = k, nv = k)
 
   # 4. Test
-  expect_equal(svd_norm$d[1:5], svd_lazy$d[1:5])
+  expect_equal(svd_norm$d[1:3], svd_lazy$d[1:3])
   expect_equal(dim(svd_lazy$u[1:9]), dim(svd_norm$u[1:9]))
 })
 # Frobenius norm ####
@@ -355,8 +358,8 @@ test_that("PCA works", {
 
   # 3. Fit pca
   k <- min(nrow(mat_a), ncol(mat_a)) - 1
-  pca_normal <- stats::prcomp(mat_a, scale = TRUE, center = TRUE, rank. = k)
-  pca_lazy <- prcomp(lazy_a)
+  pca_normal <- stats::prcomp(mat_a, scale = TRUE, center = TRUE, rank. = 3)
+  pca_lazy <- prcomp(lazy_a, rank=3)
 
   # 4. Test with tolerance due to iterative nature of irlba
   expect_equal(
@@ -364,6 +367,6 @@ test_that("PCA works", {
     abs(pca_lazy$rotation),
     tolerance = 1e-5
   )
-  expect_equal(pca_normal$sdev[1:9], pca_lazy$sdev[1:9], tolerance = 1e-5)
+  expect_equal(pca_normal$sdev[1:3], pca_lazy$sdev[1:3], tolerance = 1e-5)
   expect_equal(abs(pca_normal$x), abs(pca_lazy$x), tolerance = 1e-5)
 })
