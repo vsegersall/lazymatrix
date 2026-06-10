@@ -1,4 +1,9 @@
 #--------------------------------------------------
+# LazyBase: Virtual Class for all Lazy Objects ####
+#--------------------------------------------------
+setClass("LazyBase", contains = "VIRTUAL")
+
+#--------------------------------------------------
 # LazyMatrix: Class Definition ####
 #--------------------------------------------------
 #' @importFrom methods new
@@ -19,6 +24,7 @@
 #' obj <- LazyMatrix(mat, "sd", "mean")
 setClass(
   "LazyMatrix",
+  contains = "LazyBase",
   slots = c(
     data = "ANY",
     col_scales = "numeric",
@@ -99,3 +105,16 @@ setValidity("LazyMatrix", function(object) {
   ## implemented
   # 2. Check for location and scale
 })
+
+#--------------------------------------------------
+# LazyVector: Class Definition ####
+#--------------------------------------------------
+setClass(
+  "LazyVector",
+  contains = "LazyBase",
+  slots = list(
+    data = "numeric",
+    scale = "numeric",
+    location = "numeric"
+  )
+)
