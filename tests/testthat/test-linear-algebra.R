@@ -1,5 +1,9 @@
 #--------------------------------------------------
-# Matrix Multiplication ####
+# LazyMatrix ####
+#--------------------------------------------------
+
+#--------------------------------------------------
+## Matrix Multiplication ####
 #--------------------------------------------------
 test_that("Lazy multiplication computation works", {
   # 1. Define non-lazy object
@@ -33,7 +37,7 @@ test_that("Lazy multiplication computation works", {
 })
 
 #--------------------------------------------------
-# Matrix Transpose ####
+## Matrix Transpose ####
 #--------------------------------------------------
 test_that("Lazy tranpose works", {
   mat.a <- base::matrix(c(1, 2, 3, 1, 2, 3), nrow = 2, ncol = 3)
@@ -45,7 +49,7 @@ test_that("Lazy tranpose works", {
 })
 
 #--------------------------------------------------
-# Transposed Matrix-vector Multiplication ####
+## Transposed Matrix-vector Multiplication ####
 #--------------------------------------------------
 test_that("Crossprod works", {
   # 1. Define sparseMatrix
@@ -100,7 +104,7 @@ test_that("Crossprod works", {
 })
 
 #--------------------------------------------------
-# Partial SVD with irlba() ####
+## Partial SVD with irlba() ####
 #--------------------------------------------------
 test_that("SVD works", {
   # 1. Define non lazy matrix
@@ -126,7 +130,7 @@ test_that("SVD works", {
 })
 
 #--------------------------------------------------
-# Frobienius Norm ####
+## Frobienius Norm ####
 #--------------------------------------------------
 test_that("Frobenius norm works", {
   # 1. Set test matrix
@@ -143,4 +147,34 @@ test_that("Frobenius norm works", {
 
   # 4. Test
   expect_equal(lazy_frob, frob_norm)
+})
+
+#--------------------------------------------------
+# LazyVector ####
+#--------------------------------------------------
+
+#--------------------------------------------------
+## Vector Addition ####
+#--------------------------------------------------
+test_that("Vector addition works.", {
+  # 1. Set sparse matrix and vector
+  set.seed(123)
+  sparse_matrix <- Matrix::Matrix(0, 5, 3)
+  sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+  sparse_vector <- sparse_matrix[, 3]
+
+  # 2. Set lazy objects
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+  lazy_vector <- lazy_s[, 3]
+
+  # 3. Dense vector
+  dense_vector <- base::scale(sparse_vector)
+
+  # 4. Test vector
+  b <- rnorm(nrow(lazy_s))
+
+  # 5. Testing
+  dense_sum <- dense_vector + b
+  lazy_sum <- lazy_vector + b
+  expect_equal(lazy_sum, as.vector(dense_sum))
 })
