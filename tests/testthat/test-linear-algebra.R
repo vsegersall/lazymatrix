@@ -118,7 +118,7 @@ test_that("SVD works", {
 
   # 3. Perform SVD
   svd_norm <- base::svd(scaled_a, nu = k, nv = k)
-  svd_lazy <- svd(lazy_a, nu = k, nv = k)
+  svd_lazy <- lazymatrix::svd(lazy_a, nu = k, nv = k)
 
   # 4. Test
   expect_equal(svd_norm$d[1:3], svd_lazy$d[1:3])
@@ -139,7 +139,7 @@ test_that("Frobenius norm works", {
 
   # 3. Compute norm
   frob_norm <- base::norm(scale(sparse_matrix), "F")
-  lazy_frob <- norm(lazy_s)
+  lazy_frob <- lazymatrix::norm(lazy_s)
 
   # 4. Test
   expect_equal(lazy_frob, frob_norm)
