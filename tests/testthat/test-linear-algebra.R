@@ -213,3 +213,33 @@ test_that("Vector subtraction works.", {
   lazy_left_subtraction <- b - lazy_vector
   expect_equal(lazy_left_subtraction, as.vector(dense_left_difference))
 })
+
+#--------------------------------------------------
+## Scalar Multiplication ####
+#--------------------------------------------------
+test_that("Scalar multiplication works.", {
+  # 1. Set sparse matrix and vector
+  set.seed(123)
+  sparse_matrix <- Matrix::Matrix(0, 5, 3)
+  sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+  sparse_vector <- sparse_matrix[, 3]
+
+  # 2. Set lazy objects
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+  lazy_vector <- lazy_s[, 3]
+
+  # 3. Dense vector
+  dense_vector <- base::scale(sparse_vector)
+
+  # 4. Test scalar
+  d <- rnorm(1)
+
+  # 5. Testing scalar multiplication vec * d
+  dense_product <- dense_vector * d
+  lazy_product <- lazy_vector * d
+  expect_equal(lazy_product, as.vector(dense_product))
+
+  # 6. Test comunality
+  lazy_product_2 <- d * lazy_vector
+  expect_equal(lazy_product_2, lazy_product)
+})

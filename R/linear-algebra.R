@@ -316,3 +316,46 @@ setMethod(
     e1 - first_term + second_term
   }
 )
+
+#--------------------------------------------------
+## Scalar Multiplication and Dot Product ####
+#--------------------------------------------------
+setMethod(
+  "*",
+  signature(e1 = "LazyColumn", e2 = "numeric"),
+  function(e1, e2) {
+    s <- 1 / e1@scale
+    c <- e1@location
+    if (length(e2) == 1) {
+      # scalar multiplication
+      first_term <- e1@data * s
+      second_term <- c * s
+      first_term * e2 - second_term * e2
+    } else {
+      # dot product
+      stop(
+        "The feature dot product is under development."
+      )
+    }
+  }
+)
+
+setMethod(
+  "*",
+  signature(e1 = "numeric", e2 = "LazyColumn"),
+  function(e1, e2) {
+    s <- 1 / e2@scale
+    c <- e2@location
+    if (length(e2) == 1) {
+      # scalar multiplication
+      first_term <- e2@data * s
+      second_term <- c * s
+      e1 * first_term - e1 * second_term
+    } else {
+      # dot product
+      stop(
+        "The feature dot product is under development."
+      )
+    }
+  }
+)
