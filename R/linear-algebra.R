@@ -277,3 +277,42 @@ setMethod(
     first_term - second_term + e2
   }
 )
+
+setMethod(
+  "+",
+  signature(e1 = "ANY", e2 = "LazyColumn"),
+  function(e1, e2) {
+    s <- 1 / e2@scale
+    c <- e2@location
+    first_term <- e2@data * s
+    second_term <- c * s
+    e1 + first_term - second_term
+  }
+)
+
+#--------------------------------------------------
+## Vector Subtraction ####
+#--------------------------------------------------
+setMethod(
+  "-",
+  signature(e1 = "LazyColumn", e2 = "ANY"),
+  function(e1, e2) {
+    s <- 1 / e1@scale
+    c <- e1@location
+    first_term <- e1@data * s
+    second_term <- c * s
+    first_term - second_term - e2
+  }
+)
+
+setMethod(
+  "-",
+  signature(e1 = "ANY", e2 = "LazyColumn"),
+  function(e1, e2) {
+    s <- 1 / e2@scale
+    c <- e2@location
+    first_term <- e2@data * s
+    second_term <- c * s
+    e1 - first_term + second_term
+  }
+)

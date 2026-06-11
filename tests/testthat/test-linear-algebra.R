@@ -173,8 +173,43 @@ test_that("Vector addition works.", {
   # 4. Test vector
   b <- rnorm(nrow(lazy_s))
 
-  # 5. Testing
+  # 5. Testing vector addition lazy_vector + b
   dense_sum <- dense_vector + b
   lazy_sum <- lazy_vector + b
   expect_equal(lazy_sum, as.vector(dense_sum))
+
+  # 6. Testing Comunality for vector addtion
+  lazy_sum_2 <- b + lazy_vector
+  expect_equal(lazy_sum_2, lazy_sum)
+})
+
+#--------------------------------------------------
+## Vector Subtraction ####
+#--------------------------------------------------
+test_that("Vector subtraction works.", {
+  # 1. Set sparse matrix and vector
+  set.seed(123)
+  sparse_matrix <- Matrix::Matrix(0, 5, 3)
+  sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+  sparse_vector <- sparse_matrix[, 3]
+
+  # 2. Set lazy objects
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+  lazy_vector <- lazy_s[, 3]
+
+  # 3. Dense vector
+  dense_vector <- base::scale(sparse_vector)
+
+  # 4. Test vector
+  b <- rnorm(nrow(lazy_s))
+
+  # 5. Testing vector subtraction lazy_vector - b
+  dense_difference <- dense_vector - b
+  lazy_difference <- lazy_vector - b
+  expect_equal(lazy_difference, as.vector(dense_difference))
+
+  # 6. Testing vector subtraction b - lazy_vector
+  dense_left_difference <- b - dense_vector
+  lazy_left_subtraction <- b - lazy_vector
+  expect_equal(lazy_left_subtraction, as.vector(dense_left_difference))
 })
