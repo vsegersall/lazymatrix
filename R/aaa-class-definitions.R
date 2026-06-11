@@ -107,10 +107,10 @@ setValidity("LazyMatrix", function(object) {
 })
 
 #--------------------------------------------------
-# LazyVector: Class Definition ####
+# LazyColumn: Class Definition ####
 #--------------------------------------------------
 setClass(
-  "LazyVector",
+  "LazyColumn",
   contains = "LazyBase",
   slots = list(
     data = "numeric",

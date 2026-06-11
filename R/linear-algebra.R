@@ -260,15 +260,15 @@ setMethod("norm", "LazyMatrix", function(x) {
 })
 
 #--------------------------------------------------
-# LazyVector ####
+# LazyColumn ####
 #--------------------------------------------------
 
 #--------------------------------------------------
 ## Vector Addition ####
 #--------------------------------------------------
 setMethod(
-  "Arith",
-  signature(e1 = "LazyVector", e2 = "ANY"),
+  "+",
+  signature(e1 = "LazyColumn", e2 = "ANY"),
   function(e1, e2) {
     s <- 1 / e1@scale
     c <- e1@location

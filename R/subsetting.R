@@ -1,5 +1,5 @@
 #--------------------------------------------------
-# LazyMatrix --> LazyVector ####
+# LazyMatrix --> LazyColumn ####
 #--------------------------------------------------
 setMethod("[", "LazyMatrix", function(x, i, j, ..., drop = TRUE) {
   # Column subsetting: X[, j]
@@ -7,7 +7,7 @@ setMethod("[", "LazyMatrix", function(x, i, j, ..., drop = TRUE) {
     j <- as.integer(j)
     if (length(j) == 1) {
       new(
-        "LazyVector",
+        "LazyColumn",
         data = x@data[, j],
         scale = x@col_scales[j],
         location = x@col_locations[j]
