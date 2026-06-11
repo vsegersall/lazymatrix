@@ -1,5 +1,9 @@
 #--------------------------------------------------
-# nrow() ####
+# LazyMatrix ####
+#--------------------------------------------------
+
+#--------------------------------------------------
+## nrow() ####
 #--------------------------------------------------
 setGeneric("nrow")
 #' Returns the number of rows of the data matrix
@@ -18,7 +22,7 @@ setMethod("nrow", "LazyMatrix", function(x) {
 })
 
 #--------------------------------------------------
-# ncol() ####
+## ncol() ####
 #--------------------------------------------------
 setGeneric("ncol")
 #' Returns the number of columns of the data matrix
@@ -37,7 +41,7 @@ setMethod("ncol", "LazyMatrix", function(x) {
 })
 
 #--------------------------------------------------
-# dim() ####
+## dim() ####
 #--------------------------------------------------
 setGeneric("dim")
 #' Returns the dimension of a LazyMarix Object.
@@ -56,7 +60,7 @@ setMethod("dim", "LazyMatrix", function(x) {
 })
 
 #--------------------------------------------------
-# colnames() ####
+## colnames() ####
 #--------------------------------------------------
 setGeneric("colnames")
 #' Retrieve or set the row or column names of a LazyMatrix object.
@@ -72,4 +76,15 @@ setGeneric("colnames")
 #' colnames(lazy_a)
 setMethod("colnames", "LazyMatrix", function(x) {
   base::colnames(x@data)
+})
+
+#--------------------------------------------------
+# LazyColumn ####
+#--------------------------------------------------
+
+#--------------------------------------------------
+## length() ####
+#--------------------------------------------------
+setMethod("length", "LazyColumn", function(x) {
+  base::length(x@data)
 })
