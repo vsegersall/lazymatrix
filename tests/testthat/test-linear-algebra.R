@@ -181,6 +181,15 @@ test_that("Vector addition works.", {
   # 6. Testing Comunality for vector addtion
   lazy_sum_2 <- b + lazy_vector
   expect_equal(lazy_sum_2, lazy_sum)
+
+  # 7. Addition of 2 LazyColumns
+  dense_1 <- as.vector(dense_vector)
+  lazy_1 <- lazy_vector
+  dense_2 <- as.vector(scale(sparse_matrix[, 2]))
+  lazy_2 <- lazy_s[, 2]
+  dense_sum <- dense_1 + dense_2
+  lazy_sum <- lazy_1 + lazy_2
+  expect_equal(lazy_sum, dense_sum)
 })
 
 #--------------------------------------------------
@@ -212,6 +221,15 @@ test_that("Vector subtraction works.", {
   dense_left_difference <- b - dense_vector
   lazy_left_subtraction <- b - lazy_vector
   expect_equal(lazy_left_subtraction, as.vector(dense_left_difference))
+
+  # 7. Subtraction of two LazyColumns
+  dense_1 <- as.vector(dense_vector)
+  lazy_1 <- lazy_vector
+  dense_2 <- as.vector(scale(sparse_matrix[, 2]))
+  lazy_2 <- lazy_s[, 2]
+  dense_difference <- dense_1 - dense_2
+  lazy_difference <- lazy_1 - lazy_2
+  expect_equal(lazy_difference, dense_difference)
 })
 
 #--------------------------------------------------
@@ -242,4 +260,43 @@ test_that("Scalar multiplication works.", {
   # 6. Test comunality
   lazy_product_2 <- d * lazy_vector
   expect_equal(lazy_product_2, lazy_product)
+})
+
+#--------------------------------------------------
+## Dot Product ####
+#--------------------------------------------------
+test_that("Dot product works.", {
+  # 1. Set sparse matrix and vector
+  set.seed(123)
+  sparse_matrix <- Matrix::Matrix(0, 5, 3)
+  sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+  sparse_vector <- sparse_matrix[, 3]
+
+  # 2. Set lazy objects
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+  lazy_vector <- lazy_s[, 3]
+
+  # 3. Dense vector
+  dense_vector <- base::scale(sparse_vector)
+
+  # 4. Test vector
+  b <- rnorm(nrow(dense_vector))
+
+  # 5. Test dot product
+  dense_dot <- as.vector(dense_vector) %*% b
+  lazy_dot <- lazy_vector %*% b
+  expect_equal(lazy_dot, dense_dot)
+
+  # 6. Test comunality
+  lazy_dot_2 <- b %*% lazy_vector
+  expect_equal(lazy_dot_2, lazy_dot)
+
+  # 7. Dot product between 2 LazyColumns
+  dense_1 <- as.vector(dense_vector)
+  lazy_1 <- lazy_vector
+  dense_2 <- as.vector(scale(sparse_matrix[, 2]))
+  lazy_2 <- lazy_s[, 2]
+  dense_dotprod <- dense_1 %*% dense_2
+  lazy_dotprod <- lazy_1 %*% lazy_2
+  expect_equal(lazy_dotprod, dense_dotprod)
 })

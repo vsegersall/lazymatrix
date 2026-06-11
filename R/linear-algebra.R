@@ -290,6 +290,20 @@ setMethod(
   }
 )
 
+setMethod(
+  "+",
+  signature(e1 = "LazyColumn", e2 = "LazyColumn"),
+  function(e1, e2) {
+    s_1 <- 1 / e1@scale
+    c_1 <- e1@location
+    s_2 <- 1 / e2@scale
+    c_2 <- e2@location
+    first_term <- e1@data * s_1 + e2@data * s_2
+    second_term <- c_1 * s_1 + c_2 * s_2
+    first_term - second_term
+  }
+)
+
 #--------------------------------------------------
 ## Vector Subtraction ####
 #--------------------------------------------------
@@ -317,8 +331,22 @@ setMethod(
   }
 )
 
+setMethod(
+  "-",
+  signature(e1 = "LazyColumn", e2 = "LazyColumn"),
+  function(e1, e2) {
+    s_1 <- 1 / e1@scale
+    c_1 <- e1@location
+    s_2 <- 1 / e2@scale
+    c_2 <- e2@location
+    first_term <- e1@data * s_1 - e2@data * s_2
+    second_term <- c_1 * s_1 - c_2 * s_2
+    first_term - second_term
+  }
+)
+
 #--------------------------------------------------
-## Scalar Multiplication and Dot Product ####
+## Scalar Multiplication and Element wise vector multiplication ####
 #--------------------------------------------------
 setMethod(
   "*",
@@ -334,7 +362,7 @@ setMethod(
     } else {
       # dot product
       stop(
-        "The feature dot product is under development."
+        "The feature is under development."
       )
     }
   }
@@ -352,10 +380,63 @@ setMethod(
       second_term <- c * s
       e1 * first_term - e1 * second_term
     } else {
-      # dot product
+      # element-wise multiplication
       stop(
-        "The feature dot product is under development."
+        "The feature is under development."
       )
     }
+  }
+)
+
+#--------------------------------------------------
+## Scalar Multiplication and Element wise vector multiplication ####
+#--------------------------------------------------
+setMethod(
+  "%*%",
+  signature(x = "LazyColumn", y = "numeric"),
+  function(x, y) {
+    s <- 1 / x@scale
+    c <- x@location
+    if (length(y) == 1) {
+      x * y
+    } else {
+      first_term <- s * x@data %*% y
+      second_term <- s * c * sum(y)
+      first_term - second_term
+    }
+  }
+)
+
+setMethod(
+  "%*%",
+  signature(x = "numeric", y = "LazyColumn"),
+  function(x, y) {
+    s <- 1 / y@scale
+    c <- y@location
+    if (length(x) == 1) {
+      x * y
+    } else {
+      first_term <- s * x %*% y@data
+      second_term <- sum(x) * s * c
+      first_term - second_term
+    }
+  }
+)
+
+setMethod(
+  "%*%",
+  signature(x = "LazyColumn", y = "LazyColumn"),
+  function(x, y) {
+    s_1 <- 1 / x@scale
+    c_1 <- x@location
+    s_2 <- 1 / y@scale
+    c_2 <- y@location
+    n <- length(x@data)
+    one_vector <- rep(1, length(x@data))
+    first_term <- x@data %*% y@data
+    second_term <- x@data %*% one_vector * c_2
+    third_term <- y@data %*% one_vector * c_1
+    fourth_term <- n * c_1 * c_2
+    s_1 * s_2 * (first_term - second_term - third_term + fourth_term)
   }
 )
