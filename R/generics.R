@@ -95,4 +95,3 @@ setGeneric("norm", function(x, ...) standardGeneric("norm"))
 setMethod("length", "LazyColumn", function(x) {
   base::length(x@data)
 })
-
