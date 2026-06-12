@@ -360,10 +360,10 @@ setMethod(
       second_term <- c * s
       first_term * e2 - second_term * e2
     } else {
-      # dot product
-      stop(
-        "The feature is under development."
-      )
+      # Element-wise multiplication
+      first_term <- e1@data * s * e2
+      second_term <- c * s * e2
+      first_term - second_term
     }
   }
 )
@@ -381,15 +381,31 @@ setMethod(
       e1 * first_term - e1 * second_term
     } else {
       # element-wise multiplication
-      stop(
-        "The feature is under development."
-      )
+      first_term <- e1 * e2@data * s
+      second_term <- e1 * c * s
+      first_term - second_term
     }
   }
 )
 
+setMethod(
+  "*",
+  signature(e1 = "LazyColumn", e2 = "LazyColumn"),
+  function(e1, e2) {
+    s_1 <- 1 / e1@scale
+    c_1 <- e1@location
+    s_2 <- 1 / e2@scale
+    c_2 <- e2@location
+    first_term <- e1@data * e2@data
+    second_term <- c_1 * e2@data
+    third_term <- e1@data * c_2
+    fourth_term <- c_1 * c_2
+    s_1 * s_2 * (first_term - second_term - third_term + fourth_term)
+  }
+)
+
 #--------------------------------------------------
-## Scalar Multiplication and Element wise vector multiplication ####
+## Dot product ####
 #--------------------------------------------------
 setMethod(
   "%*%",

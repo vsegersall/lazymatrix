@@ -263,6 +263,36 @@ test_that("Scalar multiplication works.", {
 })
 
 #--------------------------------------------------
+## Element-wise Vector Multiplication ####
+#--------------------------------------------------
+test_that("Scalar multiplication works.", {
+  # 1. Set sparse matrix and vector
+  set.seed(123)
+  sparse_matrix <- Matrix::Matrix(0, 5, 3)
+  sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+  sparse_vector <- sparse_matrix[, 3]
+
+  # 2. Set lazy objects
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+  lazy_vector <- lazy_s[, 3]
+
+  # 3. Dense vector
+  dense_vector <- base::scale(sparse_vector)
+
+  # 4. Test vector
+  b <- rnorm(nrow(dense_vector))
+
+  # 5. Element-wise vector multiplication
+  dense_ew_product <- dense_vector * b
+  lazy_ew_product <- lazy_vector * b
+  expect_equal(lazy_ew_product, as.vector(dense_ew_product))
+
+  # 6. Test Comunality
+  lazy_ew_product_2 <- b * lazy_vector
+  expect_equal(lazy_ew_product_2, lazy_ew_product)
+})
+
+#--------------------------------------------------
 ## Dot Product ####
 #--------------------------------------------------
 test_that("Dot product works.", {
