@@ -265,7 +265,7 @@ test_that("Scalar multiplication works.", {
 #--------------------------------------------------
 ## Element-wise Vector Multiplication ####
 #--------------------------------------------------
-test_that("Scalar multiplication works.", {
+test_that("Element-wise vector multiplication works.", {
   # 1. Set sparse matrix and vector
   set.seed(123)
   sparse_matrix <- Matrix::Matrix(0, 5, 3)
@@ -329,4 +329,30 @@ test_that("Dot product works.", {
   dense_dotprod <- dense_1 %*% dense_2
   lazy_dotprod <- lazy_1 %*% lazy_2
   expect_equal(lazy_dotprod, dense_dotprod)
+})
+
+#--------------------------------------------------
+## Eucledean Norm ####
+#--------------------------------------------------
+test_that("Eucledean Norm.", {
+  # 1. Set sparse matrix and vector
+  set.seed(123)
+  sparse_matrix <- Matrix::Matrix(0, 5, 3)
+  sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
+  sparse_vector <- sparse_matrix[, 3]
+
+  # 2. Set lazy objects
+  lazy_s <- LazyMatrix(sparse_matrix, "sd", "mean")
+  lazy_vector <- lazy_s[, 3]
+
+  # 3. Dense vector
+  dense_vector <- base::scale(sparse_vector)
+
+  # 4. Test vector
+  b <- rnorm(nrow(dense_vector))
+
+  # 5. Test Eucledean norm
+  dense_norm <- base::norm(dense_vector, "2")
+  lazy_norm <- norm(lazy_vector)
+  expect_equal(lazy_norm, dense_norm)
 })

@@ -79,6 +79,13 @@ setMethod("colnames", "LazyMatrix", function(x) {
 })
 
 #--------------------------------------------------
+## norm() ####
+#--------------------------------------------------
+setGeneric("norm", function(x, ...) standardGeneric("norm"))
+#' @rdname norm
+#' @export
+
+#--------------------------------------------------
 # LazyColumn ####
 #--------------------------------------------------
 
@@ -88,3 +95,4 @@ setMethod("colnames", "LazyMatrix", function(x) {
 setMethod("length", "LazyColumn", function(x) {
   base::length(x@data)
 })
+

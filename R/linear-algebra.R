@@ -4,11 +4,6 @@
 
 #--------------------------------------------------
 ## t() ####
-# LazyMatrix ####
-#--------------------------------------------------
-
-#--------------------------------------------------
-## t() ####
 #--------------------------------------------------
 #' Given a LazyMatrix x, t returns the transpose of x.
 #'
@@ -35,11 +30,9 @@ setMethod("t", "LazyMatrix", function(x) {
 
 #--------------------------------------------------
 ## Matrix Multiplication ####
-## Matrix Multiplication ####
 #--------------------------------------------------
 
 #--------------------------------------------------
-### LazyMatrix & Vector ####
 ### LazyMatrix & Vector ####
 #--------------------------------------------------
 #' Matrix multiplication for LazyMatrix and vector
@@ -63,7 +56,6 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y) {
 })
 
 #--------------------------------------------------
-### Vector & LazyMatrix ####
 ### Vector & LazyMatrix ####
 #--------------------------------------------------
 #' Matrix multiplication for vector and LazyMatrix
@@ -98,7 +90,6 @@ setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y) {
 
 #--------------------------------------------------
 ### LazyMatrix & base::matrix ####
-### LazyMatrix & base::matrix ####
 #--------------------------------------------------
 #' Matrix multiplication for LazyMatrix and matrix-object.
 #'
@@ -130,7 +121,6 @@ setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
 })
 
 #--------------------------------------------------
-## crossprod() ####
 ## crossprod() ####
 #--------------------------------------------------
 #' Crossproduct for LazyMatrix
@@ -181,7 +171,6 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
 
 #--------------------------------------------------
 ## svd() ####
-## svd() ####
 #--------------------------------------------------
 #' @importFrom irlba irlba
 #' @title Singular Value decomposition for LazyMatrix.
@@ -231,7 +220,6 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
 
 #--------------------------------------------------
 ## norm() ####
-## norm() ####
 #--------------------------------------------------
 #' Computes the Frobenius norm of a LazyMatrix object.
 #'
@@ -244,9 +232,6 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
 #' mat_a <- base::matrix(rnorm(50), nrow = 10, ncol = 5)
 #' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
 #' norm(lazy_a)
-setGeneric("norm", function(x) standardGeneric("norm"))
-#' @rdname norm
-#' @export
 setMethod("norm", "LazyMatrix", function(x) {
   s <- 1 / x@col_scales
   c <- x@col_locations
@@ -423,6 +408,9 @@ setMethod(
   }
 )
 
+#--------------------------------------------------
+## Dot product ####
+#--------------------------------------------------
 setMethod(
   "%*%",
   signature(x = "numeric", y = "LazyColumn"),
@@ -456,3 +444,20 @@ setMethod(
     s_1 * s_2 * (first_term - second_term - third_term + fourth_term)
   }
 )
+
+#--------------------------------------------------
+## Eucledean Norm ####
+#--------------------------------------------------
+setMethod("norm", "LazyColumn", function(x, type = "2") {
+  if (type != "2") {
+    stop("Only Euclidean norm (type='2') is supported for LazyColumn.")
+  }
+  s <- 1 / x@scale
+  c <- x@location
+  n <- length(x)
+  one_vector <- rep(1, n)
+  first_term <- base::sum(x@data^2)
+  second_term <- 2 * c * sum(x@data)
+  third_term <- n * c^2
+  base::sqrt(s^2 * (first_term - second_term + third_term))
+})
