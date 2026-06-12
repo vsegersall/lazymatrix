@@ -374,7 +374,7 @@ setMethod(
   function(e1, e2) {
     s <- 1 / e2@scale
     c <- e2@location
-    if (length(e2) == 1) {
+    if (length(e1) == 1) {
       # scalar multiplication
       first_term <- e2@data * s
       second_term <- c * s
