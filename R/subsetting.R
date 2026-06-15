@@ -19,13 +19,13 @@
 #'
 #' @examples
 #' A <- Matrix::sparseMatrix(i = c(1,2,3), j = c(1,2,3), x = c(1,2,3))
-#' X <- LazyMatrix(A, "sd", "mean")
+#' lazy_m <- LazyMatrix(A, "sd", "mean")
 #'
 #' # Single column → LazyColumn
-#' col <- X[, 2]
+#' lazy_col <- X[, 2]
 #'
 #' # Multiple columns → LazyMatrix
-#' sub <- X[, 2:4]
+#' lazy_subset <- X[, 1:3]
 #'
 #' @rdname subset-LazyMatrix
 #' @aliases [,LazyMatrix,ANY,ANY,ANY-method
