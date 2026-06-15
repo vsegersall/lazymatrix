@@ -5,11 +5,11 @@
 #--------------------------------------------------
 ## t() ####
 #--------------------------------------------------
-#' Given a LazyMatrix x, t returns the transpose of x.
+#' Given a \code{LazyMatrix} x, t returns the transpose of x.
 #'
-#' @param x A LazyMatrix object.
+#' @param x A \code{LazyMatrix} object.
 #'
-#' @returns A LazyMatrix object with the transposed data matrix.
+#' @returns A \code{LazyMatrix} object with the transposed data matrix.
 #' @export
 #'
 #' @examples
@@ -35,11 +35,11 @@ setMethod("t", "LazyMatrix", function(x) {
 #--------------------------------------------------
 ### LazyMatrix & Vector ####
 #--------------------------------------------------
-#' Matrix multiplication for LazyMatrix and vector
+#' Matrix multiplication for \code{LazyMatrix} and vector
 #'
-#' @description Multiplies a LazyMatrix object by a vector.
+#' @description Multiplies a \code{LazyMatrix} object by a vector.
 #'
-#' @param x A LazyMatrix object.
+#' @param x A \code{LazyMatrix} object.
 #' @param y A numeric vector.
 #' @returns A numeric matrix.
 #' @export
@@ -58,12 +58,12 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y) {
 #--------------------------------------------------
 ### Vector & LazyMatrix ####
 #--------------------------------------------------
-#' Matrix multiplication for vector and LazyMatrix
+#' Matrix multiplication for vector and \code{LazyMatrix}
 #'
-#' @description Multiplies a LazyMatrix object by a vector.
+#' @description Multiplies a \code{LazyMatrix} object by a vector.
 #'
 #' @param x A numeric vector.
-#' @param y A LazyMatrix object.
+#' @param y A \code{LazyMatrix} object.
 #' @returns A Matrix object of class dgeMatrix.
 #' @export
 #' @examples
@@ -91,11 +91,11 @@ setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y) {
 #--------------------------------------------------
 ### LazyMatrix & base::matrix ####
 #--------------------------------------------------
-#' Matrix multiplication for LazyMatrix and matrix-object.
+#' Matrix multiplication for \code{LazyMatrix} and matrix-object.
 #'
-#' @description Multiplies a LazyMatrix object by a matrix
+#' @description Multiplies a \code{LazyMatrix} object by a matrix
 #'
-#' @param x A LazyMatrix object.
+#' @param x A \code{LazyMatrix} object.
 #' @param y A matrix-object.
 #' @returns A matrix-object with the product of the lazy and non lazy object.
 #' @export
@@ -123,15 +123,15 @@ setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
 #--------------------------------------------------
 ## crossprod() ####
 #--------------------------------------------------
-#' Crossproduct for LazyMatrix
+#' Crossproduct for \code{LazyMatrix}
 #'
-#' Computes the crossproduct of a LazyMatrix object as it's Gram matrix or computes the transposed matrix-vector multiplication.
+#' Computes the crossproduct of a \code{LazyMatrix} object as it's Gram matrix or computes the transposed matrix-vector multiplication.
 #'
-#' @param x A LazyMatrix object.
+#' @param x A \code{LazyMatrix} object.
 #' @param y An optional numeric vector or matrix. If NULL, computes the Gram matrix of x.
 #' @returns A matrix: the Gram matrix if y is NULL, otherwise the crossproduct result.
 #' @export
-#' @aliases crossprod,LazyMatrix-method
+#' @aliases crossprod,\code{LazyMatrix}-method
 #' @examples
 #' mat_a <- matrix(rep(1, 6), nrow=2, ncol=3)
 #' b <- c(1, 2)
@@ -173,10 +173,10 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
 ## svd() ####
 #--------------------------------------------------
 #' @importFrom irlba irlba
-#' @title Singular Value decomposition for LazyMatrix.
+#' @title Singular Value decomposition for \code{LazyMatrix}.
 #'
 #' @description Performs lazy SVD using irlba for partial Singular value decomposition on sparse matrices.
-#' @param x A LazyMatrix object.
+#' @param x A \code{LazyMatrix} object.
 #' @param nu number of left singular vectors to estimate (defaults to nv).
 #' @param nv  number of right singular vectors to estimate.
 #' @returns A list with entries:
@@ -221,9 +221,9 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
 #--------------------------------------------------
 ## norm() ####
 #--------------------------------------------------
-#' Computes the Frobenius norm of a LazyMatrix object.
+#' Computes the Frobenius norm of a \code{LazyMatrix} object.
 #'
-#' @param x A LazyMatrix object.
+#' @param x A \code{LazyMatrix} object.
 #'
 #' @returns A numeric scalar representing the Frobenius norm of the matrix.
 #' @export
@@ -251,6 +251,20 @@ setMethod("norm", "LazyMatrix", function(x) {
 #--------------------------------------------------
 ## Vector Addition ####
 #--------------------------------------------------
+#' Vector Addition between \code{LazyColumn} and regular vector
+#'
+#' @description Sums a \code{LazyColumn} vector and a regular base vector.
+#'
+#' @param e1 A \code{LazyColumn} object.
+#' @param e2 A numeric vector.
+#' @returns A numeric vector.
+#' @export
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' b <- rnorm(nrow(mat_a))
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- lazy_a[,2]
+#' lazy_col + b
 setMethod(
   "+",
   signature(e1 = "LazyColumn", e2 = "ANY"),
@@ -263,6 +277,20 @@ setMethod(
   }
 )
 
+#' Vector Addition between regular vector and \code{LazyColumn}
+#'
+#' @description Sums a regular base vector and a \code{LazyColumn} vector.
+#'
+#' @param e1 A numeric vector.
+#' @param e2 A \code{LazyColumn} object.
+#' @returns A numeric vector.
+#' @export
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' b <- rnorm(nrow(mat_a))
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- lazy_a[, 2]
+#' b + lazy_col
 setMethod(
   "+",
   signature(e1 = "ANY", e2 = "LazyColumn"),
@@ -275,6 +303,20 @@ setMethod(
   }
 )
 
+#' Vector Addition between two \code{LazyColumn} vectors.
+#'
+#' @description Sums two \code{LazyColumn} vectors.
+#'
+#' @param e1 A \code{LazyColumn} object.
+#' @param e2 A \code{LazyColumn} object.
+#' @returns A numeric vector.
+#' @export
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- lazy_a[,2]
+#' lazy_col_2 <- lazy_a[, 3]
+#' lazy_col_2 + lazy_col
 setMethod(
   "+",
   signature(e1 = "LazyColumn", e2 = "LazyColumn"),
@@ -292,6 +334,20 @@ setMethod(
 #--------------------------------------------------
 ## Vector Subtraction ####
 #--------------------------------------------------
+#' Vector subtraction between a \code{LazyColumn} vector and a regular R vector.
+#'
+#' @description Subtracts a numeric R vector from a \code{LazyColumn} vector.
+#'
+#' @param e1 A \code{LazyColumn} object.
+#' @param e2 A numeric vector.
+#' @returns A numeric vector.
+#' @export
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' b <- rnorm(nrow(mat_a))
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- lazy_a[,2]
+#' lazy_col - b
 setMethod(
   "-",
   signature(e1 = "LazyColumn", e2 = "ANY"),
@@ -304,6 +360,20 @@ setMethod(
   }
 )
 
+#' Vector Subtraction between regular vector and \code{LazyColumn}
+#'
+#' @description Subtracts a \code{LazyColumn} vector from a base vector.
+#'
+#' @param e1 A \code{LazyColumn} object.
+#' @param e2 A numeric vector.
+#' @returns A numeric vector.
+#' @export
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' b <- rnorm(nrow(mat_a))
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- lazy_a[, 2]
+#' b - lazy_col
 setMethod(
   "-",
   signature(e1 = "ANY", e2 = "LazyColumn"),
@@ -316,6 +386,20 @@ setMethod(
   }
 )
 
+#' Vector Subtraction between two \code{LazyColumn} vectors.
+#'
+#' @description Subtracts a \code{LazyColumn} vector from another \code{LazyColumn} vector.
+#'
+#' @param e1 A \code{LazyColumn} object.
+#' @param e2 A \code{LazyColumn} object.
+#' @returns A numeric vector.
+#' @export
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow = 3, ncol = 4)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- lazy_a[, 2]
+#' lazy_col_2 <- lazy_a[, 3]
+#' lazy_col_2 - lazy_col
 setMethod(
   "-",
   signature(e1 = "LazyColumn", e2 = "LazyColumn"),
@@ -333,6 +417,25 @@ setMethod(
 #--------------------------------------------------
 ## Scalar Multiplication and Element wise vector multiplication ####
 #--------------------------------------------------
+#' Multiply a LazyColumn by a numeric scalar or vector
+#'
+#' Computes the element-wise multiplication of a \code{LazyColumn} object
+#' with a numeric value, preserving the lazy structure.
+#' If \code{e2} is a scalar, scalar multiplication is performed.
+#' If \code{e2} is a vector of the same length as the column, element-wise
+#' multiplication is performed.
+#'
+#' @param e1 A \code{LazyColumn} object.
+#' @param e2 A numeric scalar or vector.
+#'
+#' @return A numeric vector with the resulting vector.
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' X <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- X[, 1]
+#' lazy_col * 2
+#' lazy_col * rnorm(nrow(X))
 setMethod(
   "*",
   signature(e1 = "LazyColumn", e2 = "numeric"),
@@ -353,6 +456,25 @@ setMethod(
   }
 )
 
+#' Multiply a numeric scalar or vector by a LazyColumn
+#'
+#' Computes the element-wise multiplication of a \code{LazyColumn} object
+#' with a numeric value, preserving the lazy structure.
+#' If \code{e1} is a scalar, scalar multiplication is performed.
+#' If \code{e1} is a vector of the same length as the column, element-wise
+#' multiplication is performed.
+#'
+#' @param e1 A numeric scalar or vector.
+#' @param e2 A \code{LazyColumn} object.
+#'
+#' @return A numeric vector with the resulting vector.
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' X <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- X[, 1]
+#' 2* lazy_col
+#' rnorm(nrow(X)) * lazy_col
 setMethod(
   "*",
   signature(e1 = "numeric", e2 = "LazyColumn"),
@@ -373,6 +495,22 @@ setMethod(
   }
 )
 
+#' Multiply element-wise two LazyColumn vectors
+#'
+#' Computes the element-wise multiplication of two \code{LazyColumn} objects
+#' , preserving the lazy structure.
+#'
+#' @param e1 A \code{LazyColumn} object.
+#' @param e2 A \code{LazyColumn} object.
+#'
+#' @return A numeric vector with the resulting vector.
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' X <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- X[, 1]
+#' lazy_col_2 <- X[, 2]
+#' lazy_col_2 * lazy_col
 setMethod(
   "*",
   signature(e1 = "LazyColumn", e2 = "LazyColumn"),
@@ -392,6 +530,25 @@ setMethod(
 #--------------------------------------------------
 ## Dot product ####
 #--------------------------------------------------
+#' Perform the dot product between a LazyColumn and a numeric vector
+#'
+#' Computes the inner product of a \code{LazyColumn} object
+#' and a numeric vector.
+#' If \code{y} is a scalar, scalar multiplication is performed.
+#' If \code{y} is a vector of the same length as the column, the dot product
+#' is performed.
+#'
+#' @param x A \code{LazyColumn} object.
+#' @param y A numeric scalar or vector.
+#'
+#' @return A numeric value with the resulting scalar.
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' X <- LazyMatrix(mat_a, "sd", "mean")
+#' b <- rnorm(nrow(X))
+#' lazy_col <- X[, 1]
+#' lazy_col %*% b
 setMethod(
   "%*%",
   signature(x = "LazyColumn", y = "numeric"),
@@ -408,9 +565,25 @@ setMethod(
   }
 )
 
-#--------------------------------------------------
-## Dot product ####
-#--------------------------------------------------
+#' Perform the dot product between a numeric vectorand a LazyColumn
+#'
+#' Computes the inner product of a numeric vector
+#' and a \code{LazyColumn} object.
+#' If \code{x} is a scalar, scalar multiplication is performed.
+#' If \code{x} is a vector of the same length as the column, the dot product
+#' is performed.
+#'
+#' @param x A numeric scalar or vector.
+#' @param y A \code{LazyColumn} object.
+#'
+#' @return A numeric value with the resulting scalar.
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' X <- LazyMatrix(mat_a, "sd", "mean")
+#' b <- rnorm(nrow(X))
+#' lazy_col <- X[, 1]
+#' b %*% lazy_col
 setMethod(
   "%*%",
   signature(x = "numeric", y = "LazyColumn"),
@@ -427,6 +600,22 @@ setMethod(
   }
 )
 
+#' Perform the dot product between two LazyColumn vectors
+#'
+#' Computes the inner product between two \code{LazyColumn} objects.
+#'
+#' @param x A \code{LazyColumn} object.
+#' @param y A \code{LazyColumn} object.
+#'
+#' @return A numeric value with the resulting scalar.
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' X <- LazyMatrix(mat_a, "sd", "mean")
+#' b <- rnorm(nrow(X))
+#' lazy_col <- X[, 1]
+#' lazy_col_2 <- X[, 2]
+#' lazy_col %*% lazy_col_2
 setMethod(
   "%*%",
   signature(x = "LazyColumn", y = "LazyColumn"),
@@ -446,8 +635,23 @@ setMethod(
 )
 
 #--------------------------------------------------
-## Eucledean Norm ####
+## Euclidean Norm ####
 #--------------------------------------------------
+#' Perform the norm of a LazyColumn vector
+#'
+#' Computes the norm of a \code{LazyColumn} object.
+#'
+#' @param x A \code{LazyColumn} object.
+#' @param type A character value defining type of norm. Default is Euclidean norm.
+#'
+#' @return A numeric value with the resulting scalar.
+#'
+#' @examples
+#' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
+#' X <- LazyMatrix(mat_a, "sd", "mean")
+#' b <- rnorm(nrow(X))
+#' lazy_col <- X[, 1]
+#' norm(lazy_col)
 setMethod("norm", "LazyColumn", function(x, type = "2") {
   if (type != "2") {
     stop("Only Euclidean norm (type='2') is supported for LazyColumn.")

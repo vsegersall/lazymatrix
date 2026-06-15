@@ -2,12 +2,12 @@
 % Please edit documentation in R/linear-algebra.R
 \name{svd,LazyMatrix-method}
 \alias{svd,LazyMatrix-method}
-\title{Singular Value decomposition for LazyMatrix.}
+\title{Singular Value decomposition for \code{LazyMatrix}.}
 \usage{
 \S4method{svd}{LazyMatrix}(x, nu = min(n, p), nv = min(n, p))
 }
 \arguments{
-\item{x}{A LazyMatrix object.}
+\item{x}{A \code{LazyMatrix} object.}
 
 \item{nu}{number of left singular vectors to estimate (defaults to nv).}
 

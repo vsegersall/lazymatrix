@@ -81,17 +81,34 @@ setMethod("colnames", "LazyMatrix", function(x) {
 #--------------------------------------------------
 ## norm() ####
 #--------------------------------------------------
-setGeneric("norm", function(x, ...) standardGeneric("norm"))
+#' Compute the norm of a LazyMatrix or LazyColumn
+#'
+#' Dispatches to the appropriate method based on the class of \code{x}.
+#'
+#' @param x A \code{LazyMatrix} or \code{LazyColumn} object.
+#' @param ... Additional arguments passed to methods, such as \code{type}.
+#'
 #' @rdname norm
 #' @export
-
-#--------------------------------------------------
-# LazyColumn ####
-#--------------------------------------------------
+setGeneric("norm", function(x, ...) standardGeneric("norm"))
 
 #--------------------------------------------------
 ## length() ####
 #--------------------------------------------------
+#' Get the length of a LazyColumn
+#'
+#' @param x A LazyColumn object.
+#'
+#' @returns An integer value containing the number of elements within the vector.
+#'
+#' @examples
+#' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_col <- lazy_a[, 2]
+#' length(lazy_col)
+#'
+#' @rdname length-LazyColumn
+#' @export
 setMethod("length", "LazyColumn", function(x) {
   base::length(x@data)
 })

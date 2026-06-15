@@ -2,12 +2,12 @@
 % Please edit documentation in R/linear-algebra.R
 \name{\%*\%,LazyMatrix,ANY-method}
 \alias{\%*\%,LazyMatrix,ANY-method}
-\title{Matrix multiplication for LazyMatrix and vector}
+\title{Matrix multiplication for \code{LazyMatrix} and vector}
 \usage{
 \S4method{\%*\%}{LazyMatrix,ANY}(x, y)
 }
 \arguments{
-\item{x}{A LazyMatrix object.}
+\item{x}{A \code{LazyMatrix} object.}
 
 \item{y}{A numeric vector.}
 }
@@ -15,7 +15,7 @@
 A numeric matrix.
 }
 \description{
-Multiplies a LazyMatrix object by a vector.
+Multiplies a \code{LazyMatrix} object by a vector.
 }
 \examples{
 mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)

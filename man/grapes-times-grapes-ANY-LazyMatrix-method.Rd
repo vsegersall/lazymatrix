@@ -2,20 +2,20 @@
 % Please edit documentation in R/linear-algebra.R
 \name{\%*\%,ANY,LazyMatrix-method}
 \alias{\%*\%,ANY,LazyMatrix-method}
-\title{Matrix multiplication for vector and LazyMatrix}
+\title{Matrix multiplication for vector and \code{LazyMatrix}}
 \usage{
 \S4method{\%*\%}{ANY,LazyMatrix}(x, y)
 }
 \arguments{
 \item{x}{A numeric vector.}
 
-\item{y}{A LazyMatrix object.}
+\item{y}{A \code{LazyMatrix} object.}
 }
 \value{
 A Matrix object of class dgeMatrix.
 }
 \description{
-Multiplies a LazyMatrix object by a vector.
+Multiplies a \code{LazyMatrix} object by a vector.
 }
 \examples{
 mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)

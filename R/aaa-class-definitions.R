@@ -109,6 +109,21 @@ setValidity("LazyMatrix", function(object) {
 #--------------------------------------------------
 # LazyColumn: Class Definition ####
 #--------------------------------------------------
+#' @importFrom methods new
+
+#' @name LazyColumn-class
+#' @title LazyColumn S4 class
+#'
+#' @description An S4 class to represent a column vector as a subset of a LazyMatrix-object
+#'
+#' @slot data The underlying data column vector.
+#' @slot scale Numeric scalar containing column-scale parameter.
+#' @slot location Numeric scalar containing the column-location parameter.
+#' @export
+#' @examples
+#' mat <- matrix(1:6, nrow = 2, ncol = 3)
+#' lazy_mat <- LazyMatrix(mat, "sd", "mean")
+#' lazy_column <- lazy_mat[, 2]
 setClass(
   "LazyColumn",
   contains = "LazyBase",
