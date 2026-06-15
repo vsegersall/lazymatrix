@@ -47,6 +47,34 @@
 
       <dl><dt>
 
+          <code><a href="ANY-LazyColumn-method.html">`-`(<i>&lt;ANY&gt;</i>,<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Vector Subtraction between regular vector and <code>LazyColumn</code></dd>
+
+        <dt>
+
+          <code><a href="LazyColumn-ANY-method.html">`-`(<i>&lt;LazyColumn&gt;</i>,<i>&lt;ANY&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Vector subtraction between a <code>LazyColumn</code> vector and a regular R vector.</dd>
+
+        <dt>
+
+          <code><a href="LazyColumn-LazyColumn-method.html">`-`(<i>&lt;LazyColumn&gt;</i>,<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Vector Subtraction between two <code>LazyColumn</code> vectors.</dd>
+
+        <dt>
+
+          <code><a href="LazyColumn-class.html">LazyColumn-class</a></code>
+
+        </dt>
+        <dd>LazyColumn S4 class</dd>
+
+        <dt>
+
           <code><a href="LazyMatrix-class.html">LazyMatrix-class</a></code>
 
         </dt>
@@ -71,7 +99,7 @@
           <code><a href="crossprod-LazyMatrix-ANY-method.html">crossprod(<i>&lt;LazyMatrix&gt;</i>,<i>&lt;ANY&gt;</i>)</a></code>
 
         </dt>
-        <dd>Crossproduct for LazyMatrix</dd>
+        <dd>Crossproduct for <code>LazyMatrix</code></dd>
 
         <dt>
 
@@ -85,21 +113,42 @@
           <code><a href="grapes-times-grapes-ANY-LazyMatrix-method.html">`%*%`(<i>&lt;ANY&gt;</i>,<i>&lt;LazyMatrix&gt;</i>)</a></code>
 
         </dt>
-        <dd>Matrix multiplication for vector and LazyMatrix</dd>
+        <dd>Matrix multiplication for vector and <code>LazyMatrix</code></dd>
+
+        <dt>
+
+          <code><a href="grapes-times-grapes-LazyColumn-LazyColumn-method.html">`%*%`(<i>&lt;LazyColumn&gt;</i>,<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Perform the dot product between two LazyColumn vectors</dd>
+
+        <dt>
+
+          <code><a href="grapes-times-grapes-LazyColumn-numeric-method.html">`%*%`(<i>&lt;LazyColumn&gt;</i>,<i>&lt;numeric&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Perform the dot product between a LazyColumn and a numeric vector</dd>
 
         <dt>
 
           <code><a href="grapes-times-grapes-LazyMatrix-ANY-method.html">`%*%`(<i>&lt;LazyMatrix&gt;</i>,<i>&lt;ANY&gt;</i>)</a></code>
 
         </dt>
-        <dd>Matrix multiplication for LazyMatrix and vector</dd>
+        <dd>Matrix multiplication for <code>LazyMatrix</code> and vector</dd>
 
         <dt>
 
           <code><a href="grapes-times-grapes-LazyMatrix-matrix-method.html">`%*%`(<i>&lt;LazyMatrix&gt;</i>,<i>&lt;matrix&gt;</i>)</a></code>
 
         </dt>
-        <dd>Matrix multiplication for LazyMatrix and matrix-object.</dd>
+        <dd>Matrix multiplication for <code>LazyMatrix</code> and matrix-object.</dd>
+
+        <dt>
+
+          <code><a href="grapes-times-grapes-numeric-LazyColumn-method.html">`%*%`(<i>&lt;numeric&gt;</i>,<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Perform the dot product between a numeric vectorand a LazyColumn</dd>
 
         <dt>
 
@@ -117,6 +166,13 @@
 
         <dt>
 
+          <code><a href="length-LazyColumn.html">length(<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Get the length of a LazyColumn</dd>
+
+        <dt>
+
           <code><a href="lsqr.html">lsqr()</a></code>
 
         </dt>
@@ -131,10 +187,24 @@
 
         <dt>
 
+          <code><a href="norm-LazyColumn-method.html">norm(<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Perform the norm of a LazyColumn vector</dd>
+
+        <dt>
+
+          <code><a href="norm-LazyMatrix-method.html">norm(<i>&lt;LazyMatrix&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Computes the Frobenius norm of a <code>LazyMatrix</code> object.</dd>
+
+        <dt>
+
           <code><a href="norm.html">norm()</a></code>
 
         </dt>
-        <dd>Computes the Frobenius norm of a LazyMatrix object.</dd>
+        <dd>Compute the norm of a LazyMatrix or LazyColumn</dd>
 
         <dt>
 
@@ -145,6 +215,27 @@
 
         <dt>
 
+          <code><a href="plus-ANY-LazyColumn-method.html">`+`(<i>&lt;ANY&gt;</i>,<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Vector Addition between regular vector and <code>LazyColumn</code></dd>
+
+        <dt>
+
+          <code><a href="plus-LazyColumn-ANY-method.html">`+`(<i>&lt;LazyColumn&gt;</i>,<i>&lt;ANY&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Vector Addition between <code>LazyColumn</code> and regular vector</dd>
+
+        <dt>
+
+          <code><a href="plus-LazyColumn-LazyColumn-method.html">`+`(<i>&lt;LazyColumn&gt;</i>,<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Vector Addition between two <code>LazyColumn</code> vectors.</dd>
+
+        <dt>
+
           <code><a href="prcomp-LazyMatrix-method.html">prcomp(<i>&lt;LazyMatrix&gt;</i>)</a></code>
 
         </dt>
@@ -152,17 +243,45 @@
 
         <dt>
 
+          <code><a href="subset-LazyMatrix.html">`[`(<i>&lt;LazyMatrix&gt;</i>,<i>&lt;ANY&gt;</i>,<i>&lt;ANY&gt;</i>,<i>&lt;ANY&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Subset a LazyMatrix by columns</dd>
+
+        <dt>
+
           <code><a href="svd-LazyMatrix-method.html">svd(<i>&lt;LazyMatrix&gt;</i>)</a></code>
 
         </dt>
-        <dd>Singular Value decomposition for LazyMatrix.</dd>
+        <dd>Singular Value decomposition for <code>LazyMatrix</code>.</dd>
 
         <dt>
 
           <code><a href="t-LazyMatrix-method.html">t(<i>&lt;LazyMatrix&gt;</i>)</a></code>
 
         </dt>
-        <dd>Given a LazyMatrix x, t returns the transpose of x.</dd>
+        <dd>Given a <code>LazyMatrix</code> x, t returns the transpose of x.</dd>
+
+        <dt>
+
+          <code><a href="times-LazyColumn-LazyColumn-method.html">`*`(<i>&lt;LazyColumn&gt;</i>,<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Multiply element-wise two LazyColumn vectors</dd>
+
+        <dt>
+
+          <code><a href="times-LazyColumn-numeric-method.html">`*`(<i>&lt;LazyColumn&gt;</i>,<i>&lt;numeric&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Multiply a LazyColumn by a numeric scalar or vector</dd>
+
+        <dt>
+
+          <code><a href="times-numeric-LazyColumn-method.html">`*`(<i>&lt;numeric&gt;</i>,<i>&lt;LazyColumn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Multiply a numeric scalar or vector by a LazyColumn</dd>
       </dl></div>
   </main></div>
 
