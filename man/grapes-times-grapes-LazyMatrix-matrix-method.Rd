@@ -2,12 +2,12 @@
 % Please edit documentation in R/linear-algebra.R
 \name{\%*\%,LazyMatrix,matrix-method}
 \alias{\%*\%,LazyMatrix,matrix-method}
-\title{Matrix multiplication for LazyMatrix and matrix-object.}
+\title{Matrix multiplication for \code{LazyMatrix} and matrix-object.}
 \usage{
 \S4method{\%*\%}{LazyMatrix,matrix}(x, y)
 }
 \arguments{
-\item{x}{A LazyMatrix object.}
+\item{x}{A \code{LazyMatrix} object.}
 
 \item{y}{A matrix-object.}
 }
@@ -15,7 +15,7 @@
 A matrix-object with the product of the lazy and non lazy object.
 }
 \description{
-Multiplies a LazyMatrix object by a matrix
+Multiplies a \code{LazyMatrix} object by a matrix
 }
 \examples{
 mat_a <- matrix(rep(1, 6), nrow = 2, ncol = 3)

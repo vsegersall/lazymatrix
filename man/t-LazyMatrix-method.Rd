@@ -2,18 +2,18 @@
 % Please edit documentation in R/linear-algebra.R
 \name{t,LazyMatrix-method}
 \alias{t,LazyMatrix-method}
-\title{Given a LazyMatrix x, t returns the transpose of x.}
+\title{Given a \code{LazyMatrix} x, t returns the transpose of x.}
 \usage{
 \S4method{t}{LazyMatrix}(x)
 }
 \arguments{
-\item{x}{A LazyMatrix object.}
+\item{x}{A \code{LazyMatrix} object.}
 }
 \value{
-A LazyMatrix object with the transposed data matrix.
+A \code{LazyMatrix} object with the transposed data matrix.
 }
 \description{
-Given a LazyMatrix x, t returns the transpose of x.
+Given a \code{LazyMatrix} x, t returns the transpose of x.
 }
 \examples{
 mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)

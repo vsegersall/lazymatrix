@@ -2,13 +2,13 @@
 % Please edit documentation in R/linear-algebra.R
 \name{crossprod,LazyMatrix,ANY-method}
 \alias{crossprod,LazyMatrix,ANY-method}
-\alias{crossprod,LazyMatrix-method}
-\title{Crossproduct for LazyMatrix}
+\alias{crossprod,\code{LazyMatrix}-method}
+\title{Crossproduct for \code{LazyMatrix}}
 \usage{
 \S4method{crossprod}{LazyMatrix,ANY}(x, y = NULL)
 }
 \arguments{
-\item{x}{A LazyMatrix object.}
+\item{x}{A \code{LazyMatrix} object.}
 
 \item{y}{An optional numeric vector or matrix. If NULL, computes the Gram matrix of x.}
 }
@@ -16,7 +16,7 @@
 A matrix: the Gram matrix if y is NULL, otherwise the crossproduct result.
 }
 \description{
-Computes the crossproduct of a LazyMatrix object as it's Gram matrix or computes the transposed matrix-vector multiplication.
+Computes the crossproduct of a \code{LazyMatrix} object as it's Gram matrix or computes the transposed matrix-vector multiplication.
 }
 \examples{
 mat_a <- matrix(rep(1, 6), nrow=2, ncol=3)

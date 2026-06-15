@@ -1,4 +1,9 @@
 #--------------------------------------------------
+# LazyBase: Virtual Class for all Lazy Objects ####
+#--------------------------------------------------
+setClass("LazyBase", contains = "VIRTUAL")
+
+#--------------------------------------------------
 # LazyMatrix: Class Definition ####
 #--------------------------------------------------
 #' @importFrom methods new
@@ -19,6 +24,7 @@
 #' obj <- LazyMatrix(mat, "sd", "mean")
 setClass(
   "LazyMatrix",
+  contains = "LazyBase",
   slots = c(
     data = "ANY",
     col_scales = "numeric",
@@ -99,3 +105,31 @@ setValidity("LazyMatrix", function(object) {
   ## implemented
   # 2. Check for location and scale
 })
+
+#--------------------------------------------------
+# LazyColumn: Class Definition ####
+#--------------------------------------------------
+#' @importFrom methods new
+
+#' @name LazyColumn-class
+#' @title LazyColumn S4 class
+#'
+#' @description An S4 class to represent a column vector as a subset of a LazyMatrix-object
+#'
+#' @slot data The underlying data column vector.
+#' @slot scale Numeric scalar containing column-scale parameter.
+#' @slot location Numeric scalar containing the column-location parameter.
+#' @export
+#' @examples
+#' mat <- matrix(1:6, nrow = 2, ncol = 3)
+#' lazy_mat <- LazyMatrix(mat, "sd", "mean")
+#' lazy_column <- lazy_mat[, 2]
+setClass(
+  "LazyColumn",
+  contains = "LazyBase",
+  slots = list(
+    data = "numeric",
+    scale = "numeric",
+    location = "numeric"
+  )
+)
