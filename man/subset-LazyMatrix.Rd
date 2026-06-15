@@ -32,9 +32,9 @@ A <- Matrix::sparseMatrix(i = c(1,2,3), j = c(1,2,3), x = c(1,2,3))
 lazy_m <- LazyMatrix(A, "sd", "mean")
 
 # Single column → LazyColumn
-lazy_col <- X[, 2]
+lazy_col <- lazy_m[, 2]
 
 # Multiple columns → LazyMatrix
-lazy_subset <- X[, 1:3]
+lazy_subset <- lazy_m[, 1:3]
 
 }

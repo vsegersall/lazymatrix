@@ -22,10 +22,10 @@
 #' lazy_m <- LazyMatrix(A, "sd", "mean")
 #'
 #' # Single column → LazyColumn
-#' lazy_col <- X[, 2]
+#' lazy_col <- lazy_m[, 2]
 #'
 #' # Multiple columns → LazyMatrix
-#' lazy_subset <- X[, 1:3]
+#' lazy_subset <- lazy_m[, 1:3]
 #'
 #' @rdname subset-LazyMatrix
 #' @aliases [,LazyMatrix,ANY,ANY,ANY-method
