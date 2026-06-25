@@ -1,8 +1,8 @@
 ---
-title: "performance_2"
+title: "performance"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{performance_2}
+  %\VignetteIndexEntry{performance}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
