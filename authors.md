@@ -2,7 +2,7 @@
 
 ## Authors
 
-- **Viktor Segersall**. Author, maintainer.
+- **Viktor Segersall**. Author, maintainer, copyright holder.
 
 ## Citation
 
