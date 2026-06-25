@@ -9,7 +9,7 @@
 #'
 #' @param x A \code{LazyMatrix} object.
 #'
-#' @returns A \code{LazyMatrix} object with the transposed data matrix.
+#' @return A \code{LazyMatrix} object with the transposed data matrix.
 #' @export
 #'
 #' @examples
@@ -41,7 +41,7 @@ setMethod("t", "LazyMatrix", function(x) {
 #'
 #' @param x A \code{LazyMatrix} object.
 #' @param y A numeric vector.
-#' @returns A numeric matrix.
+#' @return A numeric matrix.
 #' @export
 #' @examples
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
@@ -64,7 +64,7 @@ setMethod("%*%", c("LazyMatrix", "ANY"), function(x, y) {
 #'
 #' @param x A numeric vector.
 #' @param y A \code{LazyMatrix} object.
-#' @returns A Matrix object of class dgeMatrix.
+#' @return A Matrix object of class dgeMatrix.
 #' @export
 #' @examples
 #' mat_a <- base::matrix(rep(1, 6), nrow=2, ncol=3)
@@ -97,7 +97,7 @@ setMethod("%*%", c("ANY", "LazyMatrix"), function(x, y) {
 #'
 #' @param x A \code{LazyMatrix} object.
 #' @param y A matrix-object.
-#' @returns A matrix-object with the product of the lazy and non lazy object.
+#' @return A matrix-object with the product of the lazy and non lazy object.
 #' @export
 #' @examples
 #' mat_a <- matrix(rep(1, 6), nrow = 2, ncol = 3)
@@ -129,7 +129,7 @@ setMethod("%*%", c("LazyMatrix", "matrix"), function(x, y) {
 #'
 #' @param x A \code{LazyMatrix} object.
 #' @param y An optional numeric vector or matrix. If NULL, computes the Gram matrix of x.
-#' @returns A matrix: the Gram matrix if y is NULL, otherwise the crossproduct result.
+#' @return A matrix: the Gram matrix if y is NULL, otherwise the crossproduct result.
 #' @export
 #' @aliases crossprod,\code{LazyMatrix}-method
 #' @examples
@@ -179,7 +179,7 @@ setMethod("crossprod", c("LazyMatrix", "ANY"), function(x, y = NULL) {
 #' @param x A \code{LazyMatrix} object.
 #' @param nu number of left singular vectors to estimate (defaults to nv).
 #' @param nv  number of right singular vectors to estimate.
-#' @returns A list with entries:
+#' @return A list with entries:
 #'   \item{d}{max(nu, nv) approximate singular values}
 #'   \item{u}{nu approximate left singular vectors (only when right_only=FALSE)}
 #'   \item{v}{nv approximate right singular vectors}
@@ -225,7 +225,7 @@ setMethod("svd", "LazyMatrix", function(x, nu = min(n, p), nv = min(n, p)) {
 #'
 #' @param x A \code{LazyMatrix} object.
 #'
-#' @returns A numeric scalar representing the Frobenius norm of the matrix.
+#' @return A numeric scalar representing the Frobenius norm of the matrix.
 #' @export
 #'
 #' @examples
@@ -257,7 +257,7 @@ setMethod("norm", "LazyMatrix", function(x) {
 #'
 #' @param e1 A \code{LazyColumn} object.
 #' @param e2 A numeric vector.
-#' @returns A numeric vector.
+#' @return A numeric vector.
 #' @export
 #' @examples
 #' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
@@ -283,7 +283,7 @@ setMethod(
 #'
 #' @param e1 A numeric vector.
 #' @param e2 A \code{LazyColumn} object.
-#' @returns A numeric vector.
+#' @return A numeric vector.
 #' @export
 #' @examples
 #' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
@@ -309,7 +309,7 @@ setMethod(
 #'
 #' @param e1 A \code{LazyColumn} object.
 #' @param e2 A \code{LazyColumn} object.
-#' @returns A numeric vector.
+#' @return A numeric vector.
 #' @export
 #' @examples
 #' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
@@ -340,7 +340,7 @@ setMethod(
 #'
 #' @param e1 A \code{LazyColumn} object.
 #' @param e2 A numeric vector.
-#' @returns A numeric vector.
+#' @return A numeric vector.
 #' @export
 #' @examples
 #' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
@@ -366,7 +366,7 @@ setMethod(
 #'
 #' @param e1 A \code{LazyColumn} object.
 #' @param e2 A numeric vector.
-#' @returns A numeric vector.
+#' @return A numeric vector.
 #' @export
 #' @examples
 #' mat_a <- base::matrix(rnorm(12), nrow=3, ncol=4)
@@ -392,7 +392,7 @@ setMethod(
 #'
 #' @param e1 A \code{LazyColumn} object.
 #' @param e2 A \code{LazyColumn} object.
-#' @returns A numeric vector.
+#' @return A numeric vector.
 #' @export
 #' @examples
 #' mat_a <- base::matrix(rnorm(12), nrow = 3, ncol = 4)
