@@ -17,6 +17,8 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/vsegersall/lazymatrix/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vsegersall/lazymatrix/actions/workflows/R-CMD-check.yaml)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![pkgdown](https://img.shields.io/badge/pkgdown-website-blue)](https://vsegersall.github.io/lazymatrix/)
 <!-- badges: end -->
 
 `lazymatrix` provides a framework for working with transformed sparse data matrices using [lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation). This approach is particularly useful for handling large sparse matrices where transformations (e.g., centering and scaling) would otherwise result in dense matrices, consuming significant memory and computational resources.
@@ -28,6 +30,10 @@ You can install the development version of lazymatrix from [GitHub](https://gith
 ``` r
 # install.packages("pak")
 pak::pak("vsegersall/lazymatrix")
+```
+Note: Once the package is accepted to CRAN, you can also install it via:
+```{r}
+install.packages("lazymatrix")
 ```
 
 ## Example
@@ -45,5 +51,5 @@ print(lazy_matrix)
 lazy_matrix %*% b
 ```
 
-## Contribution
-As this is part of a university project and the fact that the project does not have a stable version yet, the project is closed for contributions. We are however happy to discuss ideas for the future so feel free to contact the authors or make an issue for functionalities you would like to see within `lazymatrix`.
+## Development Status
+This package is currently in active development. While the core functionality is stable, the API may evolve as the project matures. Contributions are currently closed while the package is prepared for its first CRAN release. However, bug reports and feature requests are welcome via the GitHub Issue Tracker.
