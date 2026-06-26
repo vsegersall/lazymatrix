@@ -6,3 +6,9 @@ inst/doc
 /doc/
 /Meta/
 docs
+man/figures/logo_test.R
+man/figures/logo_lazymatrix.png
+man/figures/logo_lazymatrix_circle_white.png
+man/figures/imgfile.png
+/.quarto/
+**/*.quarto_ipynb
