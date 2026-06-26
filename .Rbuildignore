@@ -11,3 +11,8 @@
 ^docs$
 ^pkgdown$
 ^cran-comments\.md$
+^CLAUDE\.md$
+^\.devenv$
+^devenv\.lock$
+^devenv\.yaml$
+^devenv\.nix$
