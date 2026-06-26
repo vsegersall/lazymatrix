@@ -51,10 +51,35 @@ setMethod("[", "LazyMatrix", function(x, i, j, ..., drop = TRUE) {
         row_locations = x@row_locations[j]
       )
     }
-  } else {
+  } else if (!missing(i) && missing(j)) {
     # Row subsetting: X[i, ]
     stop(
       "This feature is under development. Only column subsetting is supported."
     )
+  } else {
+    if (length(i) == 1 && length(j) == 1) {
+      x@data[i, j] / x@col_scales[j] - x@col_locations[j] / x@col_scales[j]
+    } else if (length(i) > 1 && length(j) == 1) {
+      new(
+        "LazyColumn",
+        data = x@data[i, j],
+        scale = stats::sd(x@data[i, j]),
+        location = base::mean(x@data[i, j])
+      )
+    } else if (length(i) == 1 && length(j) > 1) {
+      # Row subsetting: X[i, 1:p]
+      stop(
+        "This feature is under development. Only column subsetting is supported."
+      )
+    } else {
+      new(
+        "LazyMatrix",
+        data = x@data[i, j],
+        col_scales = base::apply(x@data[i, j], 2, stats::sd),
+        row_scales = base::apply(x@data[i, j], 1, stats::sd),
+        col_locations = Matrix::colMeans(x@data[i, j]),
+        row_locations = Matrix::rowMeans(x@data[i, j])
+      )
+    }
   }
 })
