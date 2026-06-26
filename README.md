@@ -1,8 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# lazymatrix
-
 # lazymatrix <a href="https://vsegersall.github.io/lazymatrix/"><img src="man/figures/logo.png" align="right" height="139" alt="lazymatrix website" /></a>
 
 <!-- badges: start -->
@@ -35,7 +33,7 @@ Note: Once the package is accepted to CRAN, you can also install it via:
 
 ``` r
 install.packages("lazymatrix")
-#> Installing package into 'C:/Users/vikto/AppData/Local/Temp/RtmpwVz66U/temp_libpath492c16e34cfb'
+#> Installing package into 'C:/Users/vikto/AppData/Local/Temp/RtmpwVz66U/temp_libpath492c24c35122'
 #> (as 'lib' is unspecified)
 #> Warning: package 'lazymatrix' is not available for this version of R
 #> 
