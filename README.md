@@ -3,6 +3,8 @@
 
 # lazymatrix
 
+# lazymatrix <a href="https://vsegersall.github.io/lazymatrix/"><img src="man/figures/logo.png" align="right" height="139" alt="lazymatrix website" /></a>
+
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/vsegersall/lazymatrix/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vsegersall/lazymatrix/actions/workflows/R-CMD-check.yaml)
@@ -10,8 +12,6 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![pkgdown](https://img.shields.io/badge/pkgdown-website-blue)](https://vsegersall.github.io/lazymatrix/)
 <!-- badges: end -->
-
-# lazymatrix <a href="https://vsegersall.github.io/lazymatrix/"><img src="man/figures/logo.png" align="right" height="139" alt="lazymatrix website" /></a>
 
 `lazymatrix` provides a framework for working with transformed sparse
 data matrices using [lazy
@@ -35,7 +35,7 @@ Note: Once the package is accepted to CRAN, you can also install it via:
 
 ``` r
 install.packages("lazymatrix")
-#> Installing package into 'C:/Users/vikto/AppData/Local/Temp/RtmpwVz66U/temp_libpath492c657d189a'
+#> Installing package into 'C:/Users/vikto/AppData/Local/Temp/RtmpwVz66U/temp_libpath492c16e34cfb'
 #> (as 'lib' is unspecified)
 #> Warning: package 'lazymatrix' is not available for this version of R
 #> 

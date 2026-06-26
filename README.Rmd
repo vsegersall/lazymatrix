@@ -15,13 +15,13 @@ knitr::opts_chunk$set(
 
 # lazymatrix
 
+# lazymatrix <a href="https://vsegersall.github.io/lazymatrix/"><img src="man/figures/logo.png" align="right" height="139" alt="lazymatrix website" /></a>
+
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/vsegersall/lazymatrix/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vsegersall/lazymatrix/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![pkgdown](https://img.shields.io/badge/pkgdown-website-blue)](https://vsegersall.github.io/lazymatrix/)
 <!-- badges: end -->
-
-# lazymatrix <a href="https://vsegersall.github.io/lazymatrix/"><img src="man/figures/logo.png" align="right" height="139" alt="lazymatrix website" /></a>
 
 `lazymatrix` provides a framework for working with transformed sparse data matrices using [lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation). This approach is particularly useful for handling large sparse matrices where transformations (e.g., centering and scaling) would otherwise result in dense matrices, consuming significant memory and computational resources.
 
