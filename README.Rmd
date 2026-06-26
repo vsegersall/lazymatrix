@@ -47,6 +47,7 @@ sparse_matrix <- Matrix::Matrix(0, 5, 3)
 sparse_matrix[sample(length(sparse_matrix), 5)] <- rnorm(5)
 b <- rnorm(3)
 lazy_matrix <- LazyMatrix(sparse_matrix, scale = "sd", location = "mean")
+
 print(lazy_matrix)
 lazy_matrix %*% b
 ```
