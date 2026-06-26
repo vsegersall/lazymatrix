@@ -24,7 +24,7 @@ Note: Once the package is accepted to CRAN, you can also install it via:
 ``` r
 
 install.packages("lazymatrix")
-#> Installing package into 'C:/Users/vikto/AppData/Local/Temp/Rtmp4yD82T/temp_libpath969c781e6602'
+#> Installing package into 'C:/Users/vikto/AppData/Local/Temp/RtmpwVz66U/temp_libpath492c24c35122'
 #> (as 'lib' is unspecified)
 #> Warning: package 'lazymatrix' is not available for this version of R
 #> 
