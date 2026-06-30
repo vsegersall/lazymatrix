@@ -1,5 +1,5 @@
 #--------------------------------------------------
-# LazyMatrix --> LazyColumn ####
+# LazyMatrix ####
 #--------------------------------------------------
 #' Subset a LazyMatrix by columns
 #'
@@ -82,4 +82,48 @@ setMethod("[", "LazyMatrix", function(x, i, j, ..., drop = TRUE) {
       )
     }
   }
+})
+
+#--------------------------------------------------
+# LazyColumn ####
+#--------------------------------------------------
+#' Subset a LazyColumn
+#'
+#' Subsets a \code{LazyColumn} object using standard R indexing rules.
+#'
+#' @param x A \code{LazyColumn} object.
+#' @param i Index: positive integers, negative integers, logical vector,
+#'   character vector (if named), zero, or missing (nothing).
+#' @param ... Additional arguments (ignored).
+#' @param drop Logical. Currently ignored — single element extraction always
+#'   returns a plain scaled numeric, consistent with vector subsetting.
+#'
+#' @returns A \code{LazyColumn} when multiple elements are selected, or a
+#'   scaled numeric value when a single element is selected.
+#'
+#' @export
+setMethod("[", "LazyColumn", function(x, i, ..., drop = TRUE) {
+  # ---- Case: nothing (X[]) ----
+  # i is missing entirely -> return x unchanged
+  if (missing(i)) {
+    return(x)
+  }
+
+  # ---- Case: zero-length result (X[0] or X[integer(0)]) ----
+  if (length(i) == 0 || (length(i) == 1 && i == 0)) {
+    return(new("LazyColumn", data = numeric(0), scale = 0, location = 0))
+  }
+
+  # ---- Case: single element ----
+  if (length(i) == 1 && i > 0) {
+    x_ij <- x@data[i] / x@scale - x@location / x@scale
+    return(x_ij)
+  }
+
+  new(
+    "LazyColumn",
+    data = x@data[i],
+    scale = stats::sd(x@data[i]),
+    location = base::mean(x@data[i])
+  )
 })
