@@ -236,7 +236,7 @@ test_that("Postive integers return elements at the specified positions", {
   dense_c <- mat_a[, 2]
 
   # 2. Single element → returns a scaled numeric value, not a LazyColumn
-  dense_1 <- scaled_c[2]
+  dense_1 <- scale(dense_c)[2]
   lazy_1 <- lazy_c[2]
   expect_type(lazy_1, "double")
   expect_equal(lazy_1, dense_1)
