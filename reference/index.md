@@ -120,7 +120,7 @@
 - [`setNames(`*`<LazyColumn>`*`,`*`<character>`*`)`](https://vsegersall.github.io/lazymatrix/reference/setNames-LazyColumn.md)
   : Set names for a LazyColumn
 
-- [`` `[`( ``*`<LazyColumn>`*`,`*`<ANY>`*`,`*`<ANY>`*`,`*`<ANY>`*`)`](https://vsegersall.github.io/lazymatrix/reference/sub-LazyColumn-ANY-ANY-ANY-method.md)
+- [`` `[`( ``*`<LazyColumn>`*`,`*`<ANY>`*`,`*`<ANY>`*`,`*`<ANY>`*`)`](https://vsegersall.github.io/lazymatrix/reference/subset-LazyColumn.md)
   : Subset a LazyColumn
 
 - [`` `[`( ``*`<LazyMatrix>`*`,`*`<ANY>`*`,`*`<ANY>`*`,`*`<ANY>`*`)`](https://vsegersall.github.io/lazymatrix/reference/subset-LazyMatrix.md)
