@@ -27,6 +27,7 @@
 #' # Multiple columns → LazyMatrix
 #' lazy_subset <- lazy_m[, 1:3]
 #'
+#' @name subset-LazyMatrix
 #' @rdname subset-LazyMatrix
 #' @aliases [,LazyMatrix,ANY,ANY,ANY-method
 #' @export
@@ -67,7 +68,6 @@ setMethod("[", "LazyMatrix", function(x, i, j, ..., drop = TRUE) {
         location = base::mean(x@data[i, j])
       )
     } else if (length(i) == 1 && length(j) > 1) {
-      # Row subsetting: X[i, 1:p]
       stop(
         "This feature is under development. Only column subsetting is supported."
       )
@@ -89,11 +89,14 @@ setMethod("[", "LazyMatrix", function(x, i, j, ..., drop = TRUE) {
 #--------------------------------------------------
 #' Subset a LazyColumn
 #'
-#' Subsets a \code{LazyColumn} object using standard R indexing rules.
+#' Subsets a \code{LazyColumn} object using standard R indexing rules:
+#' positive integers, negative integers, logical vectors (with recycling),
+#' character vectors (if named), zero, or missing (nothing).
 #'
 #' @param x A \code{LazyColumn} object.
 #' @param i Index: positive integers, negative integers, logical vector,
 #'   character vector (if named), zero, or missing (nothing).
+#' @param j Not used for \code{LazyColumn} (1-dimensional). Must be missing.
 #' @param ... Additional arguments (ignored).
 #' @param drop Logical. Currently ignored — single element extraction always
 #'   returns a plain scaled numeric, consistent with vector subsetting.
@@ -101,10 +104,24 @@ setMethod("[", "LazyMatrix", function(x, i, j, ..., drop = TRUE) {
 #' @returns A \code{LazyColumn} when multiple elements are selected, or a
 #'   scaled numeric value when a single element is selected.
 #'
+#' @examples
+#' set.seed(123)
+#' mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_c <- lazy_a[, 2]
+#'
+#' # Single element → plain scaled numeric
+#' lazy_c[2]
+#'
+#' # Multiple elements → LazyColumn
+#' lazy_c[c(1, 3, 5)]
+#'
+#' @name subset-LazyColumn
+#' @rdname subset-LazyColumn
+#' @aliases [,LazyColumn,ANY,ANY,ANY-method
 #' @export
 setMethod("[", "LazyColumn", function(x, i, ..., drop = TRUE) {
   # ---- Case: nothing (X[]) ----
-  # i is missing entirely -> return x unchanged
   if (missing(i)) {
     return(x)
   }

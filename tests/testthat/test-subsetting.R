@@ -55,8 +55,6 @@ test_that("Subsetting works as base R.", {
   lazy_element <- lazy_a[5, 2]
   dense_element <- base::scale(mat_a)[5, 2]
   expect_equal(lazy_element, dense_element)
-
-  # 8. Logical subsetting
 })
 
 #--------------------------------------------------
