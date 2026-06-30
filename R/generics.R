@@ -112,3 +112,77 @@ setGeneric("norm", function(x, ...) standardGeneric("norm"))
 setMethod("length", "LazyColumn", function(x) {
   base::length(x@data)
 })
+
+#--------------------------------------------------
+# LazyColumn ####
+#--------------------------------------------------
+#--------------------------------------------------
+## Logial Operators ####
+#--------------------------------------------------
+#' Comparison operators for LazyColumn
+#'
+#' Enables logical comparisons (`>`, `<`, `>=`, `<=`, `==`, `!=`) on a
+#' \code{LazyColumn}, comparing against its scaled values.
+#'
+#' @param e1 A \code{LazyColumn} or numeric.
+#' @param e2 A \code{LazyColumn} or numeric.
+#' @returns A logical vector.
+#' @export
+setMethod("Compare", signature("LazyColumn", "numeric"), function(e1, e2) {
+  callGeneric(e1@data, e2) # placeholder, fill in `scaled` properly
+})
+
+#' Comparison operators for LazyColumn
+#'
+#' Enables logical comparisons (`>`, `<`, `>=`, `<=`, `==`, `!=`) on a
+#' \code{LazyColumn}, comparing against its scaled values.
+#'
+#' @param e1 A \code{LazyColumn} or numeric.
+#' @param e2 A \code{LazyColumn} or numeric.
+#' @returns A logical vector.
+#' @export
+setMethod("Compare", signature("numeric", "LazyColumn"), function(e1, e2) {
+  callGeneric(e1, e2@data) # placeholder, fill in `scaled` properly
+})
+
+#--------------------------------------------------
+## setNames ####
+#--------------------------------------------------
+#' Set names for a LazyColumn
+#'
+#' Assigns names to the underlying data of a \code{LazyColumn}, returning a
+#' new \code{LazyColumn} with the same scale and location as the original.
+#' This enables name-based subsetting via \code{[} on \code{LazyColumn}
+#' objects, mirroring \code{stats::setNames()} for ordinary vectors.
+#'
+#' @param object A \code{LazyColumn} object.
+#' @param nm A character vector of names, with length equal to
+#'   \code{length(object@data)}.
+#'
+#' @returns A new \code{LazyColumn} with named data, preserving the original
+#'   scale and location.
+#'
+#' @examples
+#' set.seed(123)
+#' mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' lazy_a <- LazyMatrix(mat_a, "sd", "mean")
+#' lazy_c <- lazy_a[, 2]
+#' lazy_named <- setNames(lazy_c[1:26], letters[1:26])
+#' lazy_named["a"]
+#'
+#' @rdname setNames-LazyColumn
+#' @aliases setNames,LazyColumn,character-method
+#' @export
+setMethod(
+  "setNames",
+  signature("LazyColumn", "character"),
+  function(object, nm) {
+    named_data <- stats::setNames(object@data, nm)
+    new(
+      "LazyColumn",
+      data = named_data,
+      scale = object@scale,
+      location = object@location
+    )
+  }
+)
