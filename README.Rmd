@@ -32,7 +32,7 @@ You can install the development version of lazymatrix from [GitHub](https://gith
 pak::pak("vsegersall/lazymatrix")
 ```
 Note: Once the package is accepted to CRAN, you can also install it via:
-```{r}
+```{r, eval=FALSE}
 install.packages("lazymatrix")
 ```
 
