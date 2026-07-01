@@ -108,8 +108,8 @@ test_that("Logical column subsetting works", {
   expect_equal(lazy_1@col_locations, attr(scale(dense_1), "scaled:center"))
 
   # 6. Logical statements
-  dense_1 <- mat_a[mat_a[,2] > 0.2, ] # rows where col 2 > 0.2
-  lazy_1 <- lazy_a[mat_a[,2] > 0.2, ]
+  dense_1 <- mat_a[mat_a[, 2] > 0.2, ] # rows where col 2 > 0.2
+  lazy_1 <- lazy_a[mat_a[, 2] > 0.2, ]
   expect_equal(lazy_1@data, dense_1)
   expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
   expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
@@ -120,43 +120,35 @@ test_that("Logical column subsetting works", {
 #--------------------------------------------------
 test_that("Negative column subsetting works", {
   skip("Negative subsetting not yet implemented")
-
   set.seed(123)
   mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
-  scaled_a <- scale(mat_a)
 
   # 1. Remove single column → LazyMatrix with 9 columns
-  result <- lazy_a[, -1]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 9)
+  dense_1 <- mat_a[, -1]
+  lazy_1 <- lazy_a[, -1]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
 
   # 2. Remove last column
-  result <- lazy_a[, -10]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 9)
+  dense_1 <- mat_a[, -10]
+  lazy_1 <- lazy_a[, -10]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
 
   # 3. Remove multiple columns → LazyMatrix
-  result <- lazy_a[, -c(1, 3, 5)]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 7)
+  dense_1 <- mat_a[, -c(1, 3, 5)]
+  lazy_1 <- lazy_a[, -c(1, 3, 5)]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
 
-  # 4. Remove all but one column → LazyColumn
-  result <- lazy_a[, -c(1, 2, 3, 4, 5, 6, 7, 8, 9)]
-  expect_s4_class(result, "LazyColumn")
-
-  # 5. Remove all columns → error
+  # 4. Remove all columns → error
   expect_error(lazy_a[, -c(1:10)])
 
-  # 6. Values are correct after negative subsetting
-  result <- lazy_a[, -c(1, 3, 5)]
-  expect_equal(
-    as.matrix(result),
-    scaled_a[, -c(1, 3, 5)],
-    tolerance = 1e-6
-  )
-
-  # 7. Out of bounds negative index → error
+  # 5. Out of bounds negative index → error
   expect_error(lazy_a[, -11])
 })
 
@@ -165,26 +157,31 @@ test_that("Negative column subsetting works", {
 #--------------------------------------------------
 test_that("Character column subsetting works", {
   skip("Character subsetting not yet implemented")
-
   set.seed(123)
   mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
   colnames(mat_a) <- paste0("V", 1:10)
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
-  scaled_a <- scale(mat_a)
 
   # 1. Single column name → LazyColumn
-  result <- lazy_a[, "V1"]
-  expect_s4_class(result, "LazyColumn")
+  dense_1 <- mat_a[, "V1"]
+  lazy_1 <- lazy_a[, "V1"]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
 
   # 2. Multiple column names → LazyMatrix
-  result <- lazy_a[, c("V1", "V3", "V5")]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 3)
+  dense_1 <- mat_a[, c("V1", "V3", "V5")]
+  lazy_1 <- lazy_a[, c("V1", "V3", "V5")]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
 
   # 3. All column names → LazyMatrix with all columns
-  result <- lazy_a[, paste0("V", 1:10)]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 10)
+  dense_1 <- mat_a[, paste0("V", 1:10)]
+  lazy_1 <- lazy_a[, paste0("V", 1:10)]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
 
   # 4. Non-existent column name → error
   expect_error(lazy_a[, "nonexistent"])
@@ -192,15 +189,7 @@ test_that("Character column subsetting works", {
   # 5. Mix of valid and invalid names → error
   expect_error(lazy_a[, c("V1", "nonexistent")])
 
-  # 6. Values are correct after character subsetting
-  result <- lazy_a[, c("V1", "V3", "V5")]
-  expect_equal(
-    as.matrix(result),
-    scaled_a[, c("V1", "V3", "V5")],
-    tolerance = 1e-6
-  )
-
-  # 7. LazyMatrix without colnames → error
+  # 6. LazyMatrix without colnames → error
   mat_no_names <- matrix(rnorm(500), nrow = 50, ncol = 10)
   lazy_no_names <- LazyMatrix(mat_no_names, "sd", "mean")
   expect_error(lazy_no_names[, "V1"])
