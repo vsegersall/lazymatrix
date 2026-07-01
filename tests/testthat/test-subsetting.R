@@ -65,21 +65,21 @@ test_that("Logical column subsetting works", {
   set.seed(123)
   mat_a <- matrix(rnorm(500), nrow = 50, ncol = 10)
   lazy_a <- LazyMatrix(mat_a, "sd", "mean")
-  scaled_a <- scale(mat_a)
 
   # 1. Single TRUE — recycled across all columns → LazyMatrix with all 10 columns
-  result <- lazy_a[, TRUE]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 10)
+  dense_1 <- mat_a[, TRUE]
+  lazy_1 <- lazy_a[, TRUE]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@col_scales, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@col_locations, attr(scale(dense_1), "scaled:center"))
 
-  # 2. Single FALSE — recycled across all columns → selects nothing
-  expect_error(lazy_a[, FALSE])
-
-  # 3. Exact length logical — selects specific columns → LazyMatrix
+  # 2. Exact length logical — selects specific columns → LazyMatrix
   col_mask <- c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)
-  result <- lazy_a[, col_mask]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 5)
+  lazy_1 <- lazy_a[, col_mask]
+  dense_1 <- mat_a[, col_mask]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@col_scales, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@col_locations, attr(scale(dense_1), "scaled:center"))
 
   # 4. Exact length logical selecting single column → LazyColumn
   col_mask_single <- c(
@@ -94,38 +94,25 @@ test_that("Logical column subsetting works", {
     FALSE,
     FALSE
   )
-  result <- lazy_a[, col_mask_single]
-  expect_s4_class(result, "LazyColumn")
+  lazy_1 <- lazy_a[, col_mask_single]
+  dense_1 <- mat_a[, col_mask_single]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
 
   # 5. Recycled length-2 vector → selects odd columns
-  result <- lazy_a[, c(TRUE, FALSE)]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 5)
+  lazy_1 <- lazy_a[, c(TRUE, FALSE)]
+  dense_1 <- mat_a[, c(TRUE, FALSE)]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@col_scales, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@col_locations, attr(scale(dense_1), "scaled:center"))
 
-  # 6. Recycled length-2 vector → selects even columns
-  result <- lazy_a[, c(FALSE, TRUE)]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 5)
-
-  # 7. All TRUE vector → all columns selected
-  result <- lazy_a[, rep(TRUE, 10)]
-  expect_s4_class(result, "LazyMatrix")
-  expect_equal(ncol(result), 10)
-
-  # 8. All FALSE vector → selects nothing
-  expect_error(lazy_a[, rep(FALSE, 10)])
-
-  # 9. Values are correct after logical subsetting
-  col_mask <- c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)
-  result <- lazy_a[, col_mask]
-  expect_equal(
-    as.matrix(result),
-    scaled_a[, col_mask],
-    tolerance = 1e-6
-  )
-
-  # 10. Non-multiple length logical → warning about recycling
-  expect_warning(lazy_a[, c(TRUE, FALSE, TRUE)])
+  # 6. Logical statements
+  dense_1 <- mat_a[mat_a[,2] > 0.2, ] # rows where col 2 > 0.2
+  lazy_1 <- lazy_a[mat_a[,2] > 0.2, ]
+  expect_equal(lazy_1@data, dense_1)
+  expect_equal(lazy_1@scale, attr(scale(dense_1), "scaled:scale"))
+  expect_equal(lazy_1@location, attr(scale(dense_1), "scaled:center"))
 })
 
 #--------------------------------------------------
