@@ -4,6 +4,9 @@
 \name{LazyColumn-class}
 \alias{LazyColumn-class}
 \title{LazyColumn S4 class}
+\value{
+An object of class \code{LazyColumn} with slots \code{data} (numeric vector), \code{scale} (numeric scalar), and \code{location} (numeric scalar); represents a column of a \code{LazyMatrix} (scaled via scale and location).
+}
 \description{
 An S4 class to represent a column vector as a subset of a LazyMatrix-object
 }

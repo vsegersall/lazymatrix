@@ -4,6 +4,10 @@
 \name{LazyMatrix-class}
 \alias{LazyMatrix-class}
 \title{LazyMatrix S4 class}
+\value{
+An object of class \code{LazyMatrix} with slots \code{data} (matrix, possibly sparse), \code{col_scales}, \code{row_scales}, \code{col_locations}, \code{row_locations}.
+Represents the original data matrix plus stored scaling/centering parameters used for lazy operations
+}
 \description{
 An S4 class to represent a lazily transformed matrix with scaling and location parameters.
 }

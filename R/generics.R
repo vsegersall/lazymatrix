@@ -93,6 +93,8 @@ setMethod("colnames", "LazyMatrix", function(x) {
 #'
 #' @rdname norm
 #' @export
+#' @return For \code{LazyColumn}, a numeric scalar containing the Euclidean norm.
+#'         For \code{LazyMatrix}, a numeric scalar containing the Frobenius norm.
 setGeneric("norm", function(x, ...) standardGeneric("norm"))
 
 #--------------------------------------------------

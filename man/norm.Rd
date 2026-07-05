@@ -11,6 +11,10 @@ norm(x, ...)
 
 \item{...}{Additional arguments passed to methods, such as \code{type}.}
 }
+\value{
+For \code{LazyColumn}, a numeric scalar containing the Euclidean norm.
+For \code{LazyMatrix}, a numeric scalar containing the Frobenius norm.
+}
 \description{
 Dispatches to the appropriate method based on the class of \code{x}.
 }

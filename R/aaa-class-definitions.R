@@ -19,6 +19,8 @@ setClass("LazyBase", contains = "VIRTUAL")
 #' @slot col_locations Numeric vector of column locations.
 #' @slot row_locations Numeric vector of row locations.
 #' @export
+#' @return An object of class \code{LazyMatrix} with slots \code{data} (matrix, possibly sparse), \code{col_scales}, \code{row_scales}, \code{col_locations}, \code{row_locations}.
+#' Represents the original data matrix plus stored scaling/centering parameters used for lazy operations
 #' @examples
 #' mat <- matrix(1:6, nrow=2, ncol=3)
 #' obj <- LazyMatrix(mat, "sd", "mean")
@@ -50,7 +52,7 @@ setClass(
 #' @param scale optional scaling parameter.
 #' @param location optional location parameter.
 #'
-#' @returns A LazyMatrix object.
+#' @return A LazyMatrix object.
 #' @export
 #'
 #' @examples
@@ -120,6 +122,7 @@ setValidity("LazyMatrix", function(object) {
 #' @slot scale Numeric scalar containing column-scale parameter.
 #' @slot location Numeric scalar containing the column-location parameter.
 #' @export
+#' @return An object of class \code{LazyColumn} with slots \code{data} (numeric vector), \code{scale} (numeric scalar), and \code{location} (numeric scalar); represents a column of a \code{LazyMatrix} (scaled via scale and location).
 #' @examples
 #' mat <- matrix(1:6, nrow = 2, ncol = 3)
 #' lazy_mat <- LazyMatrix(mat, "sd", "mean")
