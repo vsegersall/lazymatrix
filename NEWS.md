@@ -1,3 +1,5 @@
+# lazymatrix (development version)
+
 # lazymatrix 0.1.0
 
 *Initial CRAN submission.*

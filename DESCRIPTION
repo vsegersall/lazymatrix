@@ -1,6 +1,6 @@
 Package: lazymatrix
 Title: Perform Complex Matrix Operations Symbolically on Sparse Matrices
-Version: 0.1.0
+Version: 0.1.0.9000
 Authors@R:
     person("Viktor", "Segersall", , "viktor.segersall@proton.me", role = c("aut", "cre", "cph"))
 Description: Provides a framework for lazy computation on large sparse matrices.
