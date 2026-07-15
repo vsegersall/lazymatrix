@@ -2,6 +2,8 @@
 
 ## lazymatrix 0.1.0
 
+CRAN release: 2026-07-14
+
 *Initial CRAN submission.*
 
 ### New Features
