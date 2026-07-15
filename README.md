@@ -9,6 +9,8 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![pkgdown](https://img.shields.io/badge/pkgdown-website-blue)](https://vsegersall.github.io/lazymatrix/)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/lazymatrix)](https://CRAN.R-project.org/package=lazymatrix)
 <!-- badges: end -->
 
 `lazymatrix` provides a framework for working with transformed sparse
