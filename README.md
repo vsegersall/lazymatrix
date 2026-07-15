@@ -24,14 +24,17 @@ resources.
 ## Installation
 
 You can install the development version of lazymatrix from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/) and the CRAN version depending on your
+needs.
+
+### Development Version
 
 ``` r
 # install.packages("pak")
 pak::pak("vsegersall/lazymatrix")
 ```
 
-Note: Once the package is accepted to CRAN, you can also install it via:
+### CRAN Version
 
 ``` r
 install.packages("lazymatrix")
@@ -89,7 +92,5 @@ lazy_matrix %*% b
 ## Development Status
 
 This package is currently in active development. While the core
-functionality is stable, the API may evolve as the project matures.
-Contributions are currently closed while the package is prepared for its
-first CRAN release. However, bug reports and feature requests are
-welcome via the GitHub Issue Tracker.
+functionality is stable, the API may evolve as the project matures. Bug
+reports and feature requests are welcome via the GitHub Issue Tracker.
